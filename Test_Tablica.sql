@@ -1,5 +1,6 @@
 DROP DATABASE IF EXISTS bp_2_projekt;
 CREATE DATABASE bp_2_projekt;
+USE bp_2_projekt;
 
 CREATE TABLE zaposlenik(
 id INT PRIMARY KEY AUTO_INCREMENT,
@@ -39,7 +40,7 @@ id_zaposlenik INT NOT NULL,
 id_smjena INT NOT NULL,
 datum DATE NOT NULL,
 FOREIGN KEY (id_zaposlenik) REFERENCES zaposlenik(id),
-FOREIGN KEY (id_smjene) REFERENCES smjene(id)
+FOREIGN KEY (id_smjena) REFERENCES smjene(id)
 );
 CREATE TABLE prisutnost(
 id INT PRIMARY KEY AUTO_INCREMENT,

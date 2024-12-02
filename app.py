@@ -4,7 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 app = Flask(__name__)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:luka23012005@127.0.0.1:3306/bp_2_projekt'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_TRACK_MODI FICATIONS'] = False
 
 db = SQLAlchemy(app)
 
@@ -23,7 +23,7 @@ def get_employees():
             'prezime': row['prezime'],
             'email': row['email'],
             'broj_telefona': row['broj_telefona'],
-            'datum_zaposljavanja': row['datum_zaposljavanja'].strftime('%Y-%m-%d'),  # Format date
+            'datum_zaposljavanja': row['datum_zaposljavanja'].strftime('%Y-%m-%d'),
             'pozicija': row['pozicija'],
             'status': row['status']
         })

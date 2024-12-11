@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Popis Zaposlenika</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Popis Zaposlenika</h1>
+    </header>
+
+    <main>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Ime</th>
+                    <th>Prezime</th>
+                    <th>Email</th>
+                    <th>Broj Telefona</th>
+                    <th>Datum Zaposljavanja</th>
+                    <th>Pozicija</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="zaposlenici-table">
+            </tbody>
+        </table>
+    </main>
+
+    <script>
+        async function fetchZaposlenici() {
+            const response = await fetch('/zaposlenici');
+            const data = await response.json();
+
+            const tableBody = document.getElementById('zaposlenici-table');
+            tableBody.innerHTML = '';
+
+            data.forEach(zaposlenik => {
+                const row = `
+                    <tr>
+                        <td>${zaposlenik.id}</td>
+                        <td>${zaposlenik.ime}</td>
+                        <td>${zaposlenik.prezime}</td>
+                        <td>${zaposlenik.email}</td>
+                        <td>${zaposlenik.broj_telefona}</td>
+                        <td>${zaposlenik.datum_zaposljavanja}</td>
+                        <td>${zaposlenik.pozicija}</td>
+                        <td>${zaposlenik.status}</td>
+                    </tr>
+                `;
+                tableBody.insertAdjacentHTML('beforeend', row);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchZaposlenici);
+    </script>
+</body>
+</html>

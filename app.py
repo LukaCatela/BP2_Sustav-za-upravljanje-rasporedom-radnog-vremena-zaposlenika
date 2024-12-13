@@ -5,7 +5,7 @@ import json
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:luka23012005@127.0.0.1:3306/bp_2_projekt?charset=utf8mb4'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:luka23012005@127.0.0.1:3306/bp_2_projekt?charset=utf8mb4' # OBAVEZNO MJENJATI U SVOJEM PROJEKTU
 app.config['SQLALCHEMY_TRACK_MODI FICATIONS'] = False
 
 db = SQLAlchemy(app)

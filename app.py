@@ -14,27 +14,53 @@ db = SQLAlchemy(app)
 def index():
     return render_template('index.html')
 
-@app.route('/zaposlenici', methods=['GET'])
-def get_employees():
+# Pomocna funkcija za lakse upisivanje tablica sa podatcima
+def stavljanje_vrijednosti(ime_tablice):
     with db.engine.connect() as conn:
-        select_zapolsenik = text("SELECT * FROM zaposlenik")
-        result = conn.execute(select_zapolsenik)
-        zaposlenici = []
-        for row in result: 
-            zaposlenici.append({
-                'id': row[0],
-                'ime': row[1],
-                'prezime': row[2],
-                'email': row[3],
-                'broj_telefona': row[4],
-                'datum_zaposljavanja': row[5].strftime('%Y-%m-%d'),
-                'pozicija': row[6],
-                'status': row[7]
-            })
-    return Response(
-        json.dumps(zaposlenici, ensure_ascii=False),
-        mimetype='application/json; charset=utf-8'
-    )
+        query = text(f"SELECT * FROM {ime_tablice}")
+        result = conn.execute(query)
+        data = [dict(row._mapping) for row in result]
+    return data
+
+# Od ovuda do slijedeceg komentara su svi routovi koji koriste pomocnu funkciju
+# -----------------------------------------------------------------------------------------------------#
+@app.route('/bolovanje', methods=['GET'])
+def get_bolovanje():
+    return jsonify(stavljanje_vrijednosti('bolovanje'))
+@app.route('/kalendar_godisnjih_odmora', methods=['GET'])
+def get_kalendar_godisnjih_odmora():
+    return jsonify(stavljanje_vrijednosti('kalendar_godisnjih_odmora'))
+@app.route('/ogranicenja_tvrtke', methods=['GET'])
+def get_ogranicenja_tvrtke():
+    return jsonify(stavljanje_vrijednosti('ogranicenja_tvrtke'))
+@app.route('/place', methods=['GET'])
+def get_place():
+    return jsonify(stavljanje_vrijednosti('place'))
+@app.route('/prisutnost', methods=['GET'])
+def get_prisutnost():
+    return jsonify(stavljanje_vrijednosti('prisutnost'))
+@app.route('/radni_sati', methods=['GET'])
+def get_radni_sati():
+    return jsonify(stavljanje_vrijednosti('radni_sati'))
+@app.route('/raspored_rada', methods=['GET'])
+def get_raspored_rada():
+    return jsonify(stavljanje_vrijednosti('raspored_rada'))
+@app.route('/smjene', methods=['GET'])
+def get_smjene():
+    return jsonify(stavljanje_vrijednosti('smjene'))
+@app.route('/zahtjev_prekovremeni', methods=['GET'])
+def get_zahtjev_prekovremeni():
+    return jsonify(stavljanje_vrijednosti('zahtjev_prekovremeni'))
+@app.route('/zahtjevni_godisnji_odmor', methods=['GET'])
+def get_zahtjevni_godisnji_odmor():
+    return jsonify(stavljanje_vrijednosti('zahtjevni_godisnji_odmor'))
+@app.route('//zaposlenici',methods=['GET'])
+def get_zaposlenici():
+    return jsonify(stavljanje_vrijednosti('zaposlenik'))
+@app.route('/zeljene_smjene', methods=['GET'])
+def get_zeljene_smjene():
+    return jsonify(stavljanje_vrijednosti('zeljene_smjene'))
+# -----------------------------------------------------------------------------------------------------#
 
 if __name__ == "__main__":
     app.run(debug=True)

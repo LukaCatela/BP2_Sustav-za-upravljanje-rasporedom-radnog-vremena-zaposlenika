@@ -76,7 +76,7 @@ trajanje INT NOT NULL
 );
 CREATE TABLE ogranicenja_tvrtke(
 id INT PRIMARY KEY AUTO_INCREMENT,
-vrsta_ogranicenja VARCHAR(20) -- Kasnije dodati enum svake vrste
+vrsta_ogranicenja VARCHAR(50) -- Kasnije dodati enum svake vrste
 );
 CREATE TABLE zahtjev_prekovremeni(
 id INT PRIMARY KEY AUTO_INCREMENT,

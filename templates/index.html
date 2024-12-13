@@ -3,59 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Popis Zaposlenika</title>
+    <title>Popis Podataka</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <header>
-        <h1>Popis Zaposlenika</h1>
+        <h1>Pregled Podataka</h1>
     </header>
 
     <main>
+        <div>
+            <button onclick="fetchTableData('zaposlenici')">Zaposlenici</button>
+            <button onclick="fetchTableData('smjene')">Smjene</button>
+            <button onclick="fetchTableData('bolovanje')">Bolovanje</button>
+            <button onclick="fetchTableData('kalendar_godisnjih_odmora')">kalendar_godisnjih_odmora</button>
+            <button onclick="fetchTableData('ogranicenja_tvrtke')">ogranicenja_tvrtke</button>
+            <button onclick="fetchTableData('place')">place</button>
+            <button onclick="fetchTableData('prisutnost')">prisutnost</button>
+            <button onclick="fetchTableData('radni_sati')">radni_sati</button>
+            <button onclick="fetchTableData('raspored_rada')">raspored_rada</button>
+            <button onclick="fetchTableData('zahtjev_prekovremeni')">zahtjev_prekovremeni</button>
+            <button onclick="fetchTableData('zeljene_smjene')">zeljene_smjene</button>
+            <button onclick="fetchTableData('zahtjevni_godisnji_odmor')">zahtjevni_godisnji_odmor</button>
+            <!-- Add more buttons for other tables -->
+        </div>
+
         <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Ime</th>
-                    <th>Prezime</th>
-                    <th>Email</th>
-                    <th>Broj Telefona</th>
-                    <th>Datum Zaposljavanja</th>
-                    <th>Pozicija</th>
-                    <th>Status</th>
-                </tr>
+            <thead id="table-header">
+                <!-- Headers will be dynamically updated -->
             </thead>
-            <tbody id="zaposlenici-table">
+            <tbody id="table-body">
+                <!-- Data will be dynamically inserted here -->
             </tbody>
         </table>
     </main>
 
     <script>
-        async function fetchZaposlenici() {
-            const response = await fetch('/zaposlenici');
-            const data = await response.json();
+        async function fetchTableData(table) {
+            try {
+                const response = await fetch(`/${table}`);
+                const data = await response.json();
 
-            const tableBody = document.getElementById('zaposlenici-table');
-            tableBody.innerHTML = '';
+                const tableHeader = document.getElementById('table-header');
+                const tableBody = document.getElementById('table-body');
 
-            data.forEach(zaposlenik => {
-                const row = `
-                    <tr>
-                        <td>${zaposlenik.id}</td>
-                        <td>${zaposlenik.ime}</td>
-                        <td>${zaposlenik.prezime}</td>
-                        <td>${zaposlenik.email}</td>
-                        <td>${zaposlenik.broj_telefona}</td>
-                        <td>${zaposlenik.datum_zaposljavanja}</td>
-                        <td>${zaposlenik.pozicija}</td>
-                        <td>${zaposlenik.status}</td>
-                    </tr>
-                `;
-                tableBody.insertAdjacentHTML('beforeend', row);
-            });
+                tableHeader.innerHTML = '';
+                tableBody.innerHTML = '';
+
+                if (data.length > 0) {
+                    const headers = Object.keys(data[0]);
+                    const headerRow = headers.map(header => `<th>${header}</th>`).join('');
+                    tableHeader.innerHTML = `<tr>${headerRow}</tr>`;
+
+                    data.forEach(row => {
+                        const rowHTML = headers.map(header => `<td>${row[header]}</td>`).join('');
+                        tableBody.insertAdjacentHTML('beforeend', `<tr>${rowHTML}</tr>`);
+                    });
+                } else {
+                    tableBody.innerHTML = '<tr><td colspan="10">Nema postojecih podataka</td></tr>';
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
         }
-
-        document.addEventListener('DOMContentLoaded', fetchZaposlenici);
     </script>
 </body>
 </html>

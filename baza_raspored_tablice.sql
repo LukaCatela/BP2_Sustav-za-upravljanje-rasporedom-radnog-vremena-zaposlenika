@@ -295,10 +295,50 @@ INSERT INTO napomene (id_zaposlenik, datum, napomena, tip) VALUES
 (4, '2024-11-04 12:00:00', 'Neispunjenje rokova za zadatak', 'negativna'),
 (5, '2024-11-05 14:00:00', 'Redovito izvršavanje obveza', 'pozitivna');
 
+-- funkcija koja racuna mjesecne place na temelju parametara i zapisuje rezultat u tablicu placa
+
+-- Error Code: 1418. This function has none of DETERMINISTIC, NO SQL, or READS SQL DATA in its declaration and binary logging is enabled (you *might* want to use the less safe log_bin_trust_function_creators variable)
+
+
+DROP FUNCTION IF EXISTS mjesecnaPlaca;
+
+DELIMITER //
+CREATE FUNCTION mjesecnaPlaca(zaposlenik_id INT) RETURNS DECIMAL(10,2)
+DETERMINISTIC
+BEGIN
+    DECLARE std_placa DECIMAL(10,2);
+    DECLARE broj_sati DECIMAL(10,2);
+    DECLARE prekovremeni DECIMAL(10,2);
+    DECLARE bolovanje INT;
+    DECLARE mjesecna DECIMAL(10,2);
+
+    SELECT satnica INTO std_placa FROM zaposlenik WHERE id = zaposlenik_id;
+
+    SELECT SUM(TIMESTAMPDIFF(HOUR, vrijeme_dolaska, vrijeme_odlaska)) INTO broj_sati 
+    FROM evidencija_rada WHERE id_zaposlenik = zaposlenik_id;
+
+    SELECT SUM(GREATEST(0, TIMESTAMPDIFF(HOUR, vrijeme_dolaska, vrijeme_odlaska) - 8)) INTO prekovremeni
+    FROM evidencija_rada WHERE id_zaposlenik = zaposlenik_id;
+
+    SELECT COUNT(*) INTO bolovanje 
+    FROM bolovanje WHERE id_zaposlenik = zaposlenik_id AND MONTH(pocetni_datum) = MONTH(CURDATE());
+
+    SET mjesecna = (broj_sati * std_placa) + (prekovremeni * std_placa * 1.5) - (bolovanje * 8 * std_placa);
+
+    INSERT INTO place (id_zaposlenik, godina_mjesec, radni_sati, prekovremeni_sati, bolovanje_dani, ukupna_placa)
+    VALUES (zaposlenik_id, DATE(CURDATE()), broj_sati, prekovremeni, bolovanje, mjesecna)
+    ON DUPLICATE KEY UPDATE ukupna_placa = mjesecna;
+
+    RETURN mjesecna;
+END //
+DELIMITER ;
+
+SELECT mjesecnaPlaca(4);
+
 
 -- funkcija koja racuna ukupnu isplacenu placu za zaposlenike u odredenoj godini ukljucujuci obicne i prekovremene sate
 
-DROP FUNCTION izracunajGodisnjuPlacu;
+DROP FUNCTION IF EXISTS izracunajGodisnjuPlacu;
 
 DELIMITER //
 CREATE FUNCTION izracunajGodisnjuPlacu(zaposlenik_id INT, godina INT)
@@ -331,7 +371,7 @@ SELECT izracunajGodisnjuPlacu(1, 2024);
 
 -- procedura koja odobrava zahtjeve za godisnji odmor ako nema preklapanja sa drugim zaposlenikom ili ako nema dovoljno osoblja u tom periodu
 
-DROP PROCEDURE odobrigodisnji;
+DROP PROCEDURE IF EXISTS odobrigodisnji;
 
 DELIMITER //
 CREATE PROCEDURE odobrigodisnji()
@@ -399,7 +439,7 @@ INSERT INTO godisnji_odmori (id_zaposlenik, pocetni_datum, zavrsni_datum, status
 
 -- procedura koja dodaje zaposlenike u smjene prema dostupnosti i zeljenim smjenama zaposlenika
 
-DROP PROCEDURE dodajZaposlenikeUSmjene;
+DROP PROCEDURE IF EXISTS dodajZaposlenikeUSmjene;
 
 DELIMITER //
 CREATE PROCEDURE dodajZaposlenikeUSmjene()

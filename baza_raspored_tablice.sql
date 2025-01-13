@@ -2,7 +2,7 @@ DROP DATABASE IF EXISTS bp_2_projekt;
 CREATE DATABASE bp_2_projekt;
 USE bp_2_projekt;
 
--- Tablica odjela -> npr. "Podrška", "Razvoj", "Uprava" .... (dovoljno da imate samo ova 3 odjela u tablici, ne trebate dodavati više)
+-- Tablica odjela
 CREATE TABLE odjel(
     id INT PRIMARY KEY AUTO_INCREMENT,
     naziv VARCHAR(50),
@@ -35,8 +35,8 @@ CREATE TABLE smjene(
     vrsta_smjene ENUM('jutarnja', 'popodnevna', 'nocna') NOT NULL,
     pocetak_smjene DATETIME NOT NULL,
     kraj_smjene DATETIME NOT NULL,
-    min_broj_zaposlenika TINYINT UNSIGNED NOT NULL, -- UNSIGNED jer broj_zapo ne moze bit negativan
-    id_odjel INTEGER NOT NULL, -- dodano da znate u kojem odjelu se kako radi koja smjena (npr. u podrški )
+    min_broj_zaposlenika TINYINT UNSIGNED NOT NULL, 
+    id_odjel INTEGER NOT NULL, 
     CONSTRAINT ck_datum CHECK(pocetak_smjene < kraj_smjene),
 	FOREIGN KEY (id_odjel) REFERENCES odjel(id)
 
@@ -54,7 +54,7 @@ CREATE TABLE bolovanje(
 	-- ovo su 2 triggera jer nemozemo slozeniji check INSERT i UPDATE
 );
 
--- Tablica rasporeda rada -> prema ovoj tablici će zaposlenik moći vidjeti koje smjene mora raditi u budućnosti [popunjava algoritam]
+-- Tablica rasporeda rada 
 CREATE TABLE raspored_rada(
     id INT PRIMARY KEY AUTO_INCREMENT,
     id_zaposlenik INT NOT NULL,
@@ -67,9 +67,7 @@ CREATE TABLE raspored_rada(
     -- implementirati (okidaci/procedure) da zaposlenik ne smije raditi jednu za drugom smjenom, npr. ne smije raditi "noćnu" jedan dan i drugi dan "jutarnju" da ne da otkaz zaposlenik ;)
 );
 
--- Tablica evidencije dolazaka i odlazaka (inicijalno se zvala "prisutnost", ovo će se koristiti za obračun plaće, stvarno odrađeni sati)
--- tablica je djelomično vezana uz raspored_rada i ima smisla da je odvojena tablica zato jer zaposlenik može više puta doći na posao u istom danu (npr. otiđe na marendu pa se "odjavi", a kada dođe natrag se ponovno "prijavi")
--- nema id_raspored_rada u ovoj tablici jer zaposlenik može doći na posao čak i kada mu nije definirano u rasporedu (npr. desi se iznenada neki problem)
+
 CREATE TABLE evidencija_rada(
     id INT PRIMARY KEY AUTO_INCREMENT,
     id_zaposlenik INT NOT NULL,
@@ -80,7 +78,7 @@ CREATE TABLE evidencija_rada(
     CONSTRAINT ck_vrijeme CHECK(vrijeme_dolaska < vrijeme_odlaska)
 );
 
--- Tablica plaća -> ovu tablicu isključivo popunjava procedura (nikada ručno), predlažem da na kraju mjeseca procedura obračuna plaće za sve zaposlenike
+-- Tablica plaća 
 CREATE TABLE place(
     id INT PRIMARY KEY AUTO_INCREMENT,
     id_zaposlenik INT NOT NULL,
@@ -92,35 +90,29 @@ CREATE TABLE place(
     FOREIGN KEY (id_zaposlenik) REFERENCES zaposlenik(id) ON DELETE CASCADE
 );
 
--- Tablica zahtjeva za godišnji odmor
-CREATE TABLE zahtjev_godisnji_odmor(
+CREATE TABLE godisnji_odmori (
     id INT PRIMARY KEY AUTO_INCREMENT,
     id_zaposlenik INT NOT NULL,
     pocetni_datum DATE NOT NULL,
     zavrsni_datum DATE NOT NULL,
-    status_god ENUM('odobren', 'odbijen', 'nedefinirano') DEFAULT 'nedefinirano', -- ovaj status se može izmjeniti sa procedurom u odgovarajuću vrijednost nakon što izračunate konačni raspored godišnjih
-    FOREIGN KEY (id_zaposlenik) REFERENCES zaposlenik(id)
-);
-
--- Tablica za izračunate (i konačne) periode godišnjih odmora (dorađena tablica "kalendar_godisnjih_odmora") [popunjava algoritam]
--- nije baš najbolje rješenje jer su tablice "zahtjev_godisnji_odmor" i "godisnji_odmori" slične pa bi ih u idealnom slučaju trebalo spojiti u jednu tablicu, ali ovako će vam bit lakše napraviti pa predlažem da ostavite ovako
-CREATE TABLE godisnji_odmori(
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  id_zaposlenik INT NOT NULL,
-  pocetni_datum DATE NOT NULL,
-  zavrsni_datum DATE NOT NULL
-  -- isto treba kroz okidac/proceduru provjeriti da zaposlenik nema više od 30 dana godišnjeg na godinu
+    status ENUM('odobren', 'odbijen', 'na čekanju', 'iskorišten') DEFAULT 'na čekanju', 
+    datum_podnosenja DATE, 
+    godina INT NOT NULL, 
+    broj_dana INT NOT NULL, 
+    FOREIGN KEY (id_zaposlenik) REFERENCES zaposlenik(id),
+    CONSTRAINT ck_datum CHECK(pocetni_datum <= zavrsni_datum),
+    CONSTRAINT ck_godina CHECK(YEAR(pocetni_datum) = godina)
 );
 
 
--- Tablica zahtjeva za prekovremene --> ova tablica čak i ima smisla ako želite "opravdati" kada se zaposlenik "chekira" na posao izvan smjene koja mu je po rasporedu. To onda možete uzeti u obzir kod obračuna plaće gdje ćete obračunati samo "Odobrene" prekovremene
+-- Tablica zahtjeva za prekovremene
 CREATE TABLE zahtjev_prekovremeni(
     id INT PRIMARY KEY AUTO_INCREMENT,
     id_zaposlenik INT NOT NULL,
     datum_prekovremeni DATE NOT NULL,
     sati INT NOT NULL,
-    razlog VARCHAR(1000), -- dodan ovaj atribut da se može opisati zašto se traži odobrenje prekovremenih (npr. desio se problem u poslovanju pa je zaposlenik došao)
-    status_pre VARCHAR(20), -- Kasnije dodati enum svake vrste
+    razlog VARCHAR(1000),
+    status_pre VARCHAR(20), 
     FOREIGN KEY (id_zaposlenik) REFERENCES zaposlenik(id)
 );
 
@@ -135,7 +127,7 @@ CREATE TABLE preferencije_smjena(
     CONSTRAINT ck_prioritet CHECK(prioritet > 0 AND prioritet <= 10)
 );
 
--- Tablica sluzbena putovanja -> ako je zaposlenik na službenom putovanju (npr. sastanak, edukacija, neka prezentacija, itd.) onda mu se može obračunati dodatna satnica kod obračuna plaće
+-- Tablica sluzbena putovanja 
 CREATE TABLE sluzbena_putovanja(
     id INT PRIMARY KEY AUTO_INCREMENT,
     id_zaposlenik INT NOT NULL,
@@ -150,6 +142,52 @@ CREATE TABLE sluzbena_putovanja(
 
 -- implementirat proceduru koja će omogućiti da dva zaposlenika zamjene smjene
 
+CREATE TABLE dopust (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    id_zaposlenik INT NOT NULL,
+    pocetni_datum DATE NOT NULL,
+    zavrsni_datum DATE NOT NULL,
+    tip_dopusta ENUM('plaćeni', 'neplaćeni') NOT NULL,
+    status ENUM('odobren', 'odbijen', 'na čekanju') DEFAULT 'na čekanju',
+    razlog VARCHAR(500), 
+    datum_podnosenja DATE NOT NULL, 
+    FOREIGN KEY (id_zaposlenik) REFERENCES zaposlenik(id),
+    CONSTRAINT ck_dopust CHECK(pocetni_datum <= zavrsni_datum)
+);
 
--- još možete dodati tablicu za evidenciju "dopusta", možete napraviti tablicu gdje će se evidentirati "zahtjev" od strane zaposlenika za "dopust", pa onda poslodavac može odobriti ili odbiti taj dopust, te dopust može biti plaćeni ili neplaćeni (to isto ulazi u onaj obračun plaće)
--- ako nemate ideje za dodatne tablice možete malo izaći iz okvira projekta pa napraviti evidenciju projekata koji se rade u firmi, pa onda napraviti evidenciju radnih zadataka zaposleniku (npr. za određeni period mora napraviti neki određeni zadatak koji je vezan uz projekt)
+
+CREATE TABLE projekti (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    naziv VARCHAR(100) NOT NULL,
+    opis TEXT,
+    datum_pocetka DATE NOT NULL,
+    datum_zavrsetka DATE,
+    status ENUM('aktivni', 'završeni', 'odgođeni') DEFAULT 'aktivni',
+    odgovorna_osoba INT, 
+    FOREIGN KEY (odgovorna_osoba) REFERENCES zaposlenik(id),
+    CONSTRAINT ck_datum CHECK(datum_pocetka <= datum_zavrsetka)
+);
+
+CREATE TABLE zadaci (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    id_projekt INT NOT NULL,
+    id_zaposlenik INT NOT NULL,
+    naziv VARCHAR(100) NOT NULL,
+    opis TEXT,
+    datum_pocetka DATE NOT NULL,
+    datum_zavrsetka DATE,
+    status ENUM('u tijeku', 'završeni', 'odgođeni') DEFAULT 'u tijeku',
+    prioritet ENUM('nizak', 'srednji', 'visok') DEFAULT 'srednji', 
+    FOREIGN KEY (id_projekt) REFERENCES projekti(id),
+    FOREIGN KEY (id_zaposlenik) REFERENCES zaposlenik(id),
+    CONSTRAINT ck_datum CHECK(datum_pocetka <= IFNULL(datum_zavrsetka, datum_pocetka)) 
+);
+
+CREATE TABLE napomene (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    id_zaposlenik INT NOT NULL,
+    datum DATETIME NOT NULL,
+    napomena TEXT NOT NULL,
+    tip ENUM('pozitivna', 'negativna') DEFAULT 'pozitivna',
+    FOREIGN KEY (id_zaposlenik) REFERENCES zaposlenik(id)
+);

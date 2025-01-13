@@ -52,10 +52,10 @@ BEGIN
     );
 END //
 DELIMITER ;
-CALL dodaj_zaposlenika(
+/*CALL dodaj_zaposlenika(
     'Marko', 'Horvat', '12345678923', 'M', 'marko.horvat@email.com', '0911234567', '2025-01-10', 'Developer', 'aktivan', 50.00, 1
-);
-Select * from zaposlenik;
+);*/
+-- Select * from zaposlenik;
 
 -- PROCEDURA BR.2 BRISI ZAPOSLENIKA
 DROP PROCEDURE IF EXISTS brisi_zaposlenika;
@@ -67,6 +67,38 @@ BEGIN
 END//
 DELIMITER ;
 
-CALL brisi_zaposlenika(31);
+-- CALL brisi_zaposlenika(31);
 
-Select * from zaposlenik;
+-- Select * from zaposlenik;
+
+
+-- PROCEDURA BR.3 DODAVANJE PROJEKTA
+DROP PROCEDURE IF EXISTS dodaj_projekt;
+DELIMITER //
+CREATE PROCEDURE dodaj_projekt(
+IN p_naziv VARCHAR(100),
+IN p_opis TEXT,
+IN p_datum_pocetka DATE,
+IN p_datum_zavrsetka DATE,
+IN p_status ENUM('aktivni', 'završeni', 'odgođeni'),
+IN p_odgovorna_osoba INT
+)
+BEGIN
+	INSERT INTO projekti (naziv, opis, datum_pocetka, datum_zavrsetka, status, odgovorna_osoba)
+	VALUES(p_naziv, p_opis, p_datum_pocetka, p_datum_zavrsetka, p_status, p_odgovorna_osoba);
+END //
+DELIMITER ;
+
+-- PROCEDURA BR.4 UKUPAN IZRACUM TROSKOVA PUTA
+DROP PROCEDURE IF EXISTS ukupno_troskovi_sluzbeni_put;
+DELIMITER //
+CREATE PROCEDURE ukupno_troskovi_sluzbeni_put(IN p_zap_id INT, OUT ukupno_troskovi DECIMAL(10,2))
+BEGIN
+	SELECT 
+    id_zaposlenik,
+    troskovi
+    FROM sluzbena_putovanja;
+END //
+DELIMITER ;
+
+

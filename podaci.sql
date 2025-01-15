@@ -1,5 +1,3 @@
-DROP DATABASE IF EXISTS bp_2_projekt;
-CREATE DATABASE bp_2_projekt;
 USE bp_2_projekt;
 
 INSERT INTO odjel (naziv, opis) VALUES

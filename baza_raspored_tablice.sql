@@ -37,7 +37,7 @@ CREATE TABLE smjene(
     kraj_smjene DATETIME NOT NULL,
     min_broj_zaposlenika TINYINT UNSIGNED NOT NULL, 
     id_odjel INTEGER NOT NULL, 
-    CONSTRAINT ck_datum CHECK(pocetak_smjene < kraj_smjene),
+    CONSTRAINT ck_datum_smjena CHECK(pocetak_smjene < kraj_smjene),
 	FOREIGN KEY (id_odjel) REFERENCES odjel(id)
 
 );
@@ -100,8 +100,8 @@ CREATE TABLE godisnji_odmori (
     godina INT NOT NULL, 
     broj_dana INT NOT NULL, 
     FOREIGN KEY (id_zaposlenik) REFERENCES zaposlenik(id),
-    CONSTRAINT ck_datum CHECK(pocetni_datum <= zavrsni_datum),
-    CONSTRAINT ck_godina CHECK(YEAR(pocetni_datum) = godina)
+    CONSTRAINT ck_datum_godisnji CHECK(pocetni_datum <= zavrsni_datum),
+    CONSTRAINT ck_godina_godisnji CHECK(YEAR(pocetni_datum) = godina)
 );
 
 
@@ -165,7 +165,7 @@ CREATE TABLE projekti (
     status ENUM('aktivni', 'završeni', 'odgođeni') DEFAULT 'aktivni',
     odgovorna_osoba INT, 
     FOREIGN KEY (odgovorna_osoba) REFERENCES zaposlenik(id),
-    CONSTRAINT ck_datum CHECK(datum_pocetka <= datum_zavrsetka)
+    CONSTRAINT ck_datum_projekt CHECK(datum_pocetka <= datum_zavrsetka)
 );
 
 CREATE TABLE zadaci (
@@ -180,7 +180,7 @@ CREATE TABLE zadaci (
     prioritet ENUM('nizak', 'srednji', 'visok') DEFAULT 'srednji', 
     FOREIGN KEY (id_projekt) REFERENCES projekti(id),
     FOREIGN KEY (id_zaposlenik) REFERENCES zaposlenik(id),
-    CONSTRAINT ck_datum CHECK(datum_pocetka <= IFNULL(datum_zavrsetka, datum_pocetka)) 
+    CONSTRAINT ck_datum_zadatak CHECK(datum_pocetka <= IFNULL(datum_zavrsetka, datum_pocetka)) 
 );
 
 CREATE TABLE napomene (

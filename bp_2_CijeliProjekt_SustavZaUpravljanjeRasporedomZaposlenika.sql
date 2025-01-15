@@ -198,7 +198,6 @@ CREATE TABLE napomene (
 /*----------------------------------------------------------------------------------*/
 -- Ubacivanje podataka
 
-USE bp_2_projekt;
 
 INSERT INTO odjel (naziv, opis) VALUES
 ('IT', 'Odljel za informatičku podršku i razvoj aplikacija'),
@@ -628,5 +627,33 @@ BEGIN
     FROM sluzbena_putovanja;
 END //
 DELIMITER ;
+
+-- PROCEDURA BR.5 dodavanje godišnjeg odmora za zaposlenika
+DROP PROCEDURE IF EXISTS dodaj_godisnji;
+DELIMITER //
+CREATE PROCEDURE dodaj_godisnji(IN p_id_zaposlenik INT, IN p_pocetni_datum DATE, IN p_zavrsni_datum DATE, IN p_broj_dana INT)
+BEGIN
+INSERT INTO godisnji_odmori(
+id_zaposlenik, pocetni_datum, zavrsni_datum, broj_dana)
+VALUES(p_id_zaposlenik, p_pocetni_datum, p_zavrsni_datum, YEAR(p_pocetni_datum), p_broj_dana);
+END //
+DELIMITER ;
+-- PROCEDURA BR.6 prikaz svih smjena zaposlenika za određeni dan
+DROP PROCEDURE IF EXISTS prikaz_smjene_zaposlenika;
+DELIMITER //
+CREATE PROCEDURE prikaz_smjene_zaposlenika(IN p_datum DATE)
+BEGIN
+    SELECT s.vrsta_smjene, z.ime, z.prezime
+    FROM smjene s
+    JOIN raspored_rada rr ON s.id = rr.id_smjena
+    JOIN zaposlenik z ON rr.id_zaposlenik = z.id
+    WHERE rr.datum = p_datum;
+END //
+DELIMITER ;
+CALL prikaz_smjene_zaposlenika();
+select * from smjene;
+-- PROCEDURA BR.7 automatsko odobravanje zahtjeva za prekovremeni rad 
+-- PROCEDURA BR.8 
+-- PROCEDURA BR.9 
 
 

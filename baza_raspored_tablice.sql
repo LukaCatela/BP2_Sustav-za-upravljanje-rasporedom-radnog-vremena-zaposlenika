@@ -297,9 +297,6 @@ INSERT INTO napomene (id_zaposlenik, datum, napomena, tip) VALUES
 
 -- funkcija koja racuna mjesecne place na temelju parametara i zapisuje rezultat u tablicu placa
 
--- Error Code: 1418. This function has none of DETERMINISTIC, NO SQL, or READS SQL DATA in its declaration and binary logging is enabled (you *might* want to use the less safe log_bin_trust_function_creators variable)
-
-
 DROP FUNCTION IF EXISTS mjesecnaPlaca;
 
 DELIMITER //

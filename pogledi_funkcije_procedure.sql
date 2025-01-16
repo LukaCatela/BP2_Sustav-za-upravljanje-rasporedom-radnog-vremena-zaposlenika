@@ -102,3 +102,78 @@ END //
 DELIMITER ;
 
 
+-- PROCEDURA BR.5 DODAVANJE BILJESKE ZA ZAPOSLENIKA
+DROP PROCEDURE IF EXISTS dodavanje_biljeske_za_zaposlenika;
+DELIMITER //
+CREATE PROCEDURE dodaj_biljesku (
+    IN p_id_zaposlenik INT,
+    IN p_napomena TEXT,
+    IN p_tip ENUM('pozitivna', 'negativna'),
+    IN p_datum DATETIME
+)
+BEGIN
+INSERT INTO napomene (id_zaposlenik, datum, napomena, tip)
+    VALUES (p_id_zaposlenik, p_datum, p_napomena, p_tip);
+END //
+
+DELIMITER ;
+
+
+
+-- PROCEDURA BR.6 DODAVANJE PREKOVREMENIH SATI ZAPOSLENIKU
+DROP PROCEDURE IF EXISTS dodavanje_prekovremenih_sati_zaposleniku;
+DELIMITER //
+CREATE PROCEDURE dodaj_prekovremene_sate (
+    IN p_id_zaposlenik INT,
+    IN p_datum_prekovremeni DATE,
+    IN p_sati INT,
+    IN p_razlog VARCHAR(1000)
+)
+BEGIN 
+	INSERT INTO zahtjev_prekovremeni (id_zaposlenik, datum_prekovremeni, sati, razlog, status_pre)
+    VALUES (p_id_zaposlenik, p_datum_prekovremeni, p_sati, p_razlog, 'na čekanju');
+END //
+
+DELIMITER ;
+
+
+
+-- PROCEDURA BR.7 IZRACUN UKUPNE PLACE ZAPOSLENIKA
+DROP PROCEDURE IF EXISTS izracun_ukupne_place_zaposlenika;
+DELIMITER //
+
+CREATE PROCEDURE izracun_ukupne_place_zaposlenika (
+    IN p_id_zaposlenik INT,
+    IN p_godina_mjesec DATE
+)
+BEGIN 
+	DECLARE zap_odradeni_sati INT DEFAULT 0;
+    DECLARE zap_prekovremeni INT DEFAULT 0;
+    DECLARE zap_bolovanje INT DEFAULT 0;
+    DECLARE zap_ukupno_placa DECIMAL (10,2);
+    DECLARE zap_satnica DECIMAL (10, 2);
+
+SELECT radni_sati, prekovremeni_sati, bolovanje_dani
+INTO zap_odradeni_sati, zap_prekovremeni, zap_bolovanje
+FROM place
+WHERE id_zaposlenik = p_id_zaposlenik AND godina_mjesec = p_godina_mjesec;
+
+SELECT satnica 
+INTO zap_satnica
+FROM zaposlenik
+WHERE id = p_id_zaposlenik;
+
+SET zap_ukupno_placa = (zap_satnica * zap_odradeni_sati) + (zap_satnica * 1.5 * zap_prekovremeni);
+
+IF EXISTS (SELECT 1 FROM place WHERE id_zaposlenik = p_id_zaposlenik AND godina_mjesec = p_godina_mjesec) THEN
+        UPDATE place
+        SET ukupna_placa = zap_ukupno_placa
+        WHERE id_zaposlenik = p_id_zaposlenik AND godina_mjesec = p_godina_mjesec;
+	ELSE 
+		INSERT INTO place (id_zaposlenik, godina_mjesec, radni_sati, prekovremeni_sati, bolovanje_dani, ukupna_placa)
+        VALUES (p_id_zaposlenik, p_godina_mjesec, zap_odradeni_sati, zap_prekovremeni, zap_bolovanje, zap_ukupno_placa);
+	END IF;
+END //
+DELIMITER ;
+
+CALL izracun_ukupne_place_zaposlenika(2, '2024-06-12');

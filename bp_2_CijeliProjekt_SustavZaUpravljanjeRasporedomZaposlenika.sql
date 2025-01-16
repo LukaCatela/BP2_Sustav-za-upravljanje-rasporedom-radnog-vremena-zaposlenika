@@ -142,8 +142,6 @@ CREATE TABLE sluzbena_putovanja(
     CONSTRAINT ck_putovanje CHECK(pocetni_datum < zavrsni_datum)
 );
 
--- implementirat proceduru koja će omogućiti da dva zaposlenika zamjene smjene
-
 CREATE TABLE dopust (
     id INT PRIMARY KEY AUTO_INCREMENT,
     id_zaposlenik INT NOT NULL,
@@ -194,6 +192,9 @@ CREATE TABLE napomene (
     tip ENUM('pozitivna', 'negativna') DEFAULT 'pozitivna',
     FOREIGN KEY (id_zaposlenik) REFERENCES zaposlenik(id) ON DELETE CASCADE
 );
+/*----------------------------------------------------------------------------------*/
+-- Okidaci
+
 
 /*----------------------------------------------------------------------------------*/
 -- Ubacivanje podataka
@@ -525,7 +526,11 @@ VALUES
 ('Projekt Kappa', 'Planiranje nove mrežne infrastrukture.', '2023-10-01', '2023-12-15', 'završeni', 10);
 
 /*----------------------------------------------------------------------------------*/
--- Pogledi, Procedure, Funkcije
+-- Pogledi, Procedure, Funkcije, Slozeni upiti
+-- Slozeni upiti
+
+
+
 
 -- 1. View zaposlenici i odjeli
 DROP VIEW IF EXISTS zaposlenici_odjeli;
@@ -551,6 +556,11 @@ WHERE status = 'aktivni';
 
 SELECT * FROM aktivni_projekti;
 
+-- 3. View
+
+-- 4. View
+
+-- 5. View
 /*----------------------------------------------------------------------------------*/
 -- PROCEDURE ----
 -- PROCEDURA BR.1 DODAJ ZAPOSLENIKA

@@ -29,10 +29,10 @@ CREATE TABLE zaposlenik(
     
 );
 
--- Tablica smjena
+-- Tablica smjena 
 CREATE TABLE smjene(
     id INT PRIMARY KEY AUTO_INCREMENT,
-    vrsta_smjene ENUM('jutarnja', 'popodnevna', 'nocna') NOT NULL,
+    vrsta_smjene ENUM('1', '2', '3') NOT NULL, -- 1 jutarnja, 2 popodnevna, 3 nocna
     pocetak_smjene DATETIME NOT NULL,
     kraj_smjene DATETIME NOT NULL,
     min_broj_zaposlenika TINYINT UNSIGNED NOT NULL, 

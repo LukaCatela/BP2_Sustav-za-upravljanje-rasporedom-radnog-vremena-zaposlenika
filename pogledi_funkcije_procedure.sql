@@ -393,6 +393,10 @@ SELECT * FROM godisnji_odmori;
 
 
 
+
+
+
+
 -- MATEO upiti 
 
 -- Zaposlenici s najviše odrađenih sati u proteklom mjesecu

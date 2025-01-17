@@ -207,13 +207,10 @@ CREATE TABLE napomene (
 /*----------------------------------------------------------------------------------*/
 -- Ubacivanje podataka
 
-<<<<<<< Updated upstream
-=======
 INSERT INTO vrsta_smjene (naziv) VALUES
 ('jutarnja'),
 ('popodnevna'),
 ('nocna');
->>>>>>> Stashed changes
 
 INSERT INTO odjel (naziv, opis) VALUES
 ('IT', 'Odljel za informatičku podršku i razvoj aplikacija'),

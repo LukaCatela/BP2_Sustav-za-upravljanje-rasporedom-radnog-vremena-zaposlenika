@@ -390,3 +390,40 @@ CALL korisnikPrihvacaGodisnji(TRUE, 3);
 CALL korisnikPrihvacaGodisnji(FALSE, 4);
 
 SELECT * FROM godisnji_odmori;
+
+
+
+-- MATEO upiti 
+
+-- Zaposlenici s najviše odrađenih sati u proteklom mjesecu
+SELECT CONCAT(ime, ' ', prezime) AS zaposlenik, email, godina_mjesec, (radni_sati + prekovremeni_sati) AS ukupno_sati 
+FROM place AS p 
+JOIN zaposlenik AS z ON p.id_zaposlenik = z.id 
+WHERE godina_mjesec = DATE_FORMAT(CURDATE() - INTERVAL 1 MONTH, '%Y-%m-01') 
+ORDER BY ukupno_sati DESC LIMIT 5;
+
+-- Popis svih zaposlenika s njihovim odjelima i ukupnom plaćom u određenom mjesecu
+SELECT z.id AS zaposlenik_id, CONCAT(ime, ' ', prezime) AS puno_ime, o.naziv AS odjel, ukupna_placa AS placa 
+FROM zaposlenik z 
+JOIN odjel o ON z.id_odjel = o.id 
+JOIN place p ON z.id = p.id_zaposlenik
+WHERE godina_mjesec = '2025-01-01';
+
+--  Zaposlenici koji su radili više od 15 sati prekovremeno u određenom mjesecu
+SELECT z.id AS zaposlenik_id, CONCAT(ime, ' ', prezime) AS puno_ime, prekovremeni_sati 
+FROM zaposlenik z 
+JOIN place p ON z.id = p.id_zaposlenik 
+WHERE godina_mjesec = '2025-01-01' AND prekovremeni_sati > 15;
+
+-- Projekti s rokovima koji ističu u sljedećih 7 dana
+SELECT naziv, opis, datum_zavrsetka 
+FROM projekti 
+WHERE status = 'aktivni' AND datum_zavrsetka BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY);
+
+-- Lista prekovremenih zahtjeva koji su odbijeni s razlozima
+SELECT z.id AS zaposlenik_id, CONCAT(ime, ' ', prezime) AS puno_ime, datum_prekovremeni, sati, razlog 
+FROM zaposlenik AS z 
+JOIN zahtjev_prekovremeni AS zp ON z.id = zp.id_zaposlenik 
+WHERE zp.status_pre = 'odbijen';
+
+

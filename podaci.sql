@@ -101,3 +101,17 @@ INSERT INTO napomene (id_zaposlenik, datum, napomena, tip) VALUES
 (3, '2024-11-03 11:00:00', 'Izvrsno obavljen zadatak', 'pozitivna'),
 (4, '2024-11-04 12:00:00', 'Neispunjenje rokova za zadatak', 'negativna'),
 (5, '2024-11-05 14:00:00', 'Redovito izvršavanje obveza', 'pozitivna');
+
+
+INSERT INTO projekti (naziv, opis, datum_pocetka, datum_zavrsetka, status, odgovorna_osoba)
+VALUES
+('Projekt Alfa', 'Razvoj novog softverskog sustava.', '2023-01-01', '2023-06-30', 'završeni', 1),
+('Projekt Beta', 'Modernizacija postojećeg sustava.', '2023-05-01', '2024-01-15', 'aktivni', 2),
+('Projekt Gamma', 'Istraživanje novih tehnologija.', '2023-02-15', NULL, 'aktivni', 3),
+('Projekt Delta', 'Optimizacija procesa proizvodnje.', '2022-11-01', '2023-12-01', 'završeni', 4),
+('Projekt Epsilon', 'Razvoj e-trgovine.', '2023-08-01', '2024-05-01', 'aktivni', 5),
+('Projekt Zeta', 'Implementacija AI modela.', '2023-06-01', '2023-11-30', 'završeni', 6),
+('Projekt Eta', 'Razvoj aplikacije za mobilne uređaje.', '2024-01-01', '2024-12-31', 'odgođeni', 7),
+('Projekt Theta', 'Migracija podataka u cloud.', '2023-03-01', NULL, 'aktivni', 8),
+('Projekt Iota', 'Testiranje sigurnosnih protokola.', '2023-09-01', NULL, 'odgođeni', 9),
+('Projekt Kappa', 'Planiranje nove mrežne infrastrukture.', '2023-10-01', '2023-12-15', 'završeni', 10);

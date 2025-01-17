@@ -33,19 +33,18 @@ CREATE TABLE zaposlenik(
 -- Tablica vrsta smjene
 
 CREATE TABLE vrsta_smjene (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    naziv VARCHAR(50) NOT NULL UNIQUE
+    id INT PRIMARY KEY,
+    naziv VARCHAR(50) NOT NULL UNIQUE,
+    pocetak_smjene TIME NOT NULL,
+    kraj_smjene TIME NOT NULL
 );
 
 -- Tablica smjena
 CREATE TABLE smjene (
     id INT PRIMARY KEY AUTO_INCREMENT,
     id_vrsta_smjene INT NOT NULL,
-    pocetak_smjene DATETIME NOT NULL,
-    kraj_smjene DATETIME NOT NULL,
     min_broj_zaposlenika TINYINT UNSIGNED NOT NULL,
     id_odjel INT NOT NULL,
-    CONSTRAINT ck_datum_smjene CHECK (pocetak_smjene < kraj_smjene),
     FOREIGN KEY (id_odjel) REFERENCES odjel(id),
     FOREIGN KEY (id_vrsta_smjene) REFERENCES vrsta_smjene(id)
 );
@@ -70,7 +69,7 @@ CREATE TABLE raspored_rada(
     id_smjena INT NOT NULL,
     datum DATE NOT NULL,
     FOREIGN KEY (id_zaposlenik) REFERENCES zaposlenik(id) ON DELETE CASCADE,
-    FOREIGN KEY (id_smjena) REFERENCES smjene(id_vrsta_smjene),
+    FOREIGN KEY (id_smjena) REFERENCES smjene(id) ON DELETE CASCADE,
     UNIQUE(id_zaposlenik, datum, id_smjena)
     -- dodat check za 1 smjena 1 datum -- UNIQUE(id_zaposlenik, datum) ili UNIQUE(id_zaposlenik, datum, id_smjena)
     -- implementirati (okidaci/procedure) da zaposlenik ne smije raditi jednu za drugom smjenom, npr. ne smije raditi "noćnu" jedan dan i drugi dan "jutarnju" da ne da otkaz zaposlenik ;)
@@ -95,7 +94,7 @@ CREATE TABLE place(
     radni_sati INT NOT NULL CHECK(radni_sati >= 0),
     prekovremeni_sati INT NOT NULL CHECK(prekovremeni_sati >= 0),
     bolovanje_dani INT NOT NULL DEFAULT 0,
-    ukupna_placa DECIMAL(10,2) NOT NULL CHECK(ukupna_placa >= 0),
+    ukupna_placa DECIMAL(10,2) NOT NULL DEFAULT 0 CHECK(ukupna_placa >= 0),
     FOREIGN KEY (id_zaposlenik) REFERENCES zaposlenik(id) ON DELETE CASCADE
 );
 
@@ -207,10 +206,10 @@ CREATE TABLE napomene (
 /*----------------------------------------------------------------------------------*/
 -- Ubacivanje podataka
 
-INSERT INTO vrsta_smjene (naziv) VALUES
-('jutarnja'),
-('popodnevna'),
-('nocna');
+INSERT INTO vrsta_smjene (id, naziv, pocetak_smjene, kraj_smjene) VALUES
+(1,'jutarnja', '07:00', '15:00'),
+(2,'popodnevna', '14:00', '22:00'),
+(3,'nocna', '20:00', '24:00');
 
 INSERT INTO odjel (naziv, opis) VALUES
 ('IT', 'Odljel za informatičku podršku i razvoj aplikacija'),
@@ -275,6 +274,22 @@ VALUES
 (19, '2024-10-01', '2024-10-07', TRUE),
 (20, '2024-11-01', '2024-11-06', FALSE);
 
+
+INSERT INTO smjene (id_vrsta_smjene, min_broj_zaposlenika, id_odjel) VALUES
+(1, 5, 1),  -- IT odjel, jutarnja smjena, minimalno 5 zaposlenika
+(2, 3, 1),  -- IT odjel, popodnevna smjena, minimalno 3 zaposlenika
+(1, 4, 2),  -- Prodaja odjel, jutarnja smjena, minimalno 4 zaposlenika
+(2, 2, 2),  -- Prodaja odjel, popodnevna smjena, minimalno 2 zaposlenika
+(1, 6, 3),  -- Ljudski resursi odjel, jutarnja smjena, minimalno 6 zaposlenika
+(2, 3, 3),  -- Ljudski resursi odjel, popodnevna smjena, minimalno 3 zaposlenika
+(1, 4, 4),  -- Marketing odjel, jutarnja smjena, minimalno 4 zaposlenika
+(2, 2, 4),  -- Marketing odjel, popodnevna smjena, minimalno 2 zaposlenika
+(1, 5, 5),  -- Financije odjel, jutarnja smjena, minimalno 5 zaposlenika
+(2, 3, 5),  -- Financije odjel, popodnevna smjena, minimalno 3 zaposlenika
+(1, 4, 6),  -- Skladište odjel, jutarnja smjena, minimalno 4 zaposlenika
+(2, 2, 6);  -- Skladište odjel, popodnevna smjena, minimalno 2 zaposlenika
+
+
 INSERT INTO raspored_rada (id_zaposlenik, id_smjena, datum)
 VALUES
 -- Prosinac 2024
@@ -318,33 +333,54 @@ VALUES
 (30, 1, '2024-12-16'), (30, 2, '2024-12-17'), (30, 1, '2024-12-18'), (30, 2, '2024-12-19'), (30, 1, '2024-12-20'),
 (30, 2, '2024-12-23'), (30, 1, '2024-12-24'), (30, 2, '2024-12-27'), (30, 1, '2024-12-30'), (30, 2, '2024-12-31');
 
+select * from raspored_rada;
 
 INSERT INTO evidencija_rada (id_zaposlenik, datum, vrijeme_dolaska, vrijeme_odlaska)
 VALUES
 -- Prosinac 2024
-(1, '2024-12-01', '08:00:00', '16:00:00'), (2, '2024-12-01', '16:00:00', '00:00:00'),
-(3, '2024-12-01', '08:00:00', '16:00:00'), (4, '2024-12-01', '16:00:00', '00:00:00'),
-(5, '2024-12-01', '08:00:00', '16:00:00'), (6, '2024-12-02', '16:00:00', '00:00:00'),
-(7, '2024-12-02', '08:00:00', '16:00:00'), (8, '2024-12-02', '16:00:00', '00:00:00'),
-(9, '2024-12-02', '08:00:00', '16:00:00'), (10, '2024-12-02', '16:00:00', '00:00:00'),
-(11, '2024-12-03', '08:00:00', '16:00:00'), (12, '2024-12-03', '16:00:00', '00:00:00'),
-(13, '2024-12-03', '08:00:00', '16:00:00'), (14, '2024-12-03', '16:00:00', '00:00:00'),
-(15, '2024-12-03', '08:00:00', '16:00:00'), (16, '2024-12-04', '16:00:00', '00:00:00'),
-(17, '2024-12-04', '08:00:00', '16:00:00'), (18, '2024-12-04', '16:00:00', '00:00:00'),
-(19, '2024-12-04', '08:00:00', '16:00:00'), (20, '2024-12-04', '16:00:00', '00:00:00'),
-(21, '2024-12-05', '08:00:00', '16:00:00'), (22, '2024-12-05', '16:00:00', '00:00:00'),
-(23, '2024-12-05', '08:00:00', '16:00:00'), (24, '2024-12-05', '16:00:00', '00:00:00'),
+(1, '2024-12-01', '08:00:00', '16:00:00'), 
+(2, '2024-12-01', '16:00:00', '23:59:59'),
+(3, '2024-12-01', '08:00:00', '16:00:00'), 
+(4, '2024-12-01', '16:00:00', '23:59:59'),
+(5, '2024-12-01', '08:00:00', '16:00:00'), 
+(6, '2024-12-02', '16:00:00', '23:59:59'),
+(7, '2024-12-02', '08:00:00', '16:00:00'), 
+(8, '2024-12-02', '16:00:00', '23:59:59'),
+(9, '2024-12-02', '08:00:00', '16:00:00'), 
+(10, '2024-12-02', '16:00:00', '23:59:59'),
+(11, '2024-12-03', '08:00:00', '16:00:00'), 
+(12, '2024-12-03', '16:00:00', '23:59:59'),
+(13, '2024-12-03', '08:00:00', '16:00:00'), 
+(14, '2024-12-03', '16:00:00', '23:59:59'),
+(15, '2024-12-03', '08:00:00', '16:00:00'), 
+(16, '2024-12-04', '16:00:00', '23:59:59'),
+(17, '2024-12-04', '08:00:00', '16:00:00'), 
+(18, '2024-12-04', '16:00:00', '23:59:59'),
+(19, '2024-12-04', '08:00:00', '16:00:00'), 
+(20, '2024-12-04', '16:00:00', '23:59:59'),
+(21, '2024-12-05', '08:00:00', '16:00:00'), 
+(22, '2024-12-05', '16:00:00', '23:59:59'),
+(23, '2024-12-05', '08:00:00', '16:00:00'), 
+(24, '2024-12-05', '16:00:00', '23:59:59'),
 (25, '2024-12-05', '08:00:00', '16:00:00'),
 
 -- Siječanj 2025
-(1, '2025-01-01', '16:00:00', '00:00:00'), (2, '2025-01-01', '08:00:00', '16:00:00'),
-(3, '2025-01-01', '16:00:00', '00:00:00'), (4, '2025-01-01', '08:00:00', '16:00:00'),
-(5, '2025-01-01', '16:00:00', '00:00:00'), (6, '2025-01-02', '08:00:00', '16:00:00'),
-(7, '2025-01-02', '16:00:00', '00:00:00'), (8, '2025-01-02', '08:00:00', '16:00:00'),
-(9, '2025-01-02', '16:00:00', '00:00:00'), (10, '2025-01-02', '08:00:00', '16:00:00'),
-(11, '2025-01-03', '16:00:00', '00:00:00'), (12, '2025-01-03', '08:00:00', '16:00:00'),
-(13, '2025-01-03', '16:00:00', '00:00:00'), (14, '2025-01-03', '08:00:00', '16:00:00'),
-(15, '2025-01-03', '16:00:00', '00:00:00');
+(1, '2025-01-01', '16:00:00', '23:59:59'), 
+(2, '2025-01-01', '08:00:00', '16:00:00'),
+(3, '2025-01-01', '16:00:00', '23:59:59'), 
+(4, '2025-01-01', '08:00:00', '16:00:00'),
+(5, '2025-01-01', '16:00:00', '23:59:59'), 
+(6, '2025-01-02', '08:00:00', '16:00:00'),
+(7, '2025-01-02', '16:00:00', '23:59:59'), 
+(8, '2025-01-02', '08:00:00', '16:00:00'),
+(9, '2025-01-02', '16:00:00', '23:59:59'), 
+(10, '2025-01-02', '08:00:00', '16:00:00'),
+(11, '2025-01-03', '16:00:00', '23:59:59'), 
+(12, '2025-01-03', '08:00:00', '16:00:00'),
+(13, '2025-01-03', '16:00:00', '23:59:59'), 
+(14, '2025-01-03', '08:00:00', '16:00:00'),
+(15, '2025-01-03', '16:00:00', '23:59:59');
+
 
 INSERT INTO place (id_zaposlenik, godina_mjesec, radni_sati, prekovremeni_sati, bolovanje_dani, ukupna_placa)
 VALUES
@@ -485,38 +521,39 @@ VALUES
 (29, '2024-12-29', 4, 'Priprema godišnjeg izvješća', 'na čekanju'),
 (30, '2024-12-30', 5, 'Unapređenje sustava', 'odobren');
 
-INSERT INTO preferencije_smjena (id_zaposlenik, vrsta_smjene, datum, prioritet)
+INSERT INTO preferencije_smjena (id_zaposlenik, id_vrsta_smjene, datum, prioritet)
 VALUES
-(1, 'jutarnja', '2024-12-01 08:00:00', 5),
-(2, 'popodnevna', '2024-12-02 16:00:00', 7),
-(3, 'nocna', '2024-12-03 23:00:00', 6),
-(4, 'jutarnja', '2024-12-04 08:00:00', 8),
-(5, 'popodnevna', '2024-12-05 16:00:00', 3),
-(6, 'nocna', '2024-12-06 23:00:00', 4),
-(7, 'jutarnja', '2024-12-07 08:00:00', 9),
-(8, 'popodnevna', '2024-12-08 16:00:00', 5),
-(9, 'nocna', '2024-12-09 23:00:00', 2),
-(10, 'jutarnja', '2024-12-10 08:00:00', 10),
-(11, 'popodnevna', '2024-12-11 16:00:00', 6),
-(12, 'nocna', '2024-12-12 23:00:00', 7),
-(13, 'jutarnja', '2024-12-13 08:00:00', 5),
-(14, 'popodnevna', '2024-12-14 16:00:00', 4),
-(15, 'nocna', '2024-12-15 23:00:00', 8),
-(16, 'jutarnja', '2024-12-16 08:00:00', 9),
-(17, 'popodnevna', '2024-12-17 16:00:00', 5),
-(18, 'nocna', '2024-12-18 23:00:00', 6),
-(19, 'jutarnja', '2024-12-19 08:00:00', 7),
-(20, 'popodnevna', '2024-12-20 16:00:00', 8),
-(21, 'nocna', '2024-12-21 23:00:00', 3),
-(22, 'jutarnja', '2024-12-22 08:00:00', 4),
-(23, 'popodnevna', '2024-12-23 16:00:00', 6),
-(24, 'nocna', '2024-12-24 23:00:00', 9),
-(25, 'jutarnja', '2024-12-25 08:00:00', 10),
-(26, 'popodnevna', '2024-12-26 16:00:00', 6),
-(27, 'nocna', '2024-12-27 23:00:00', 4),
-(28, 'jutarnja', '2024-12-28 08:00:00', 7),
-(29, 'popodnevna', '2024-12-29 16:00:00', 5),
-(30, 'nocna', '2024-12-30 23:00:00', 8);
+(1, 1, '2024-12-01 08:00:00', 5),
+(2, 2, '2024-12-02 16:00:00', 7),
+(3, 3, '2024-12-03 23:00:00', 6),
+(4, 1, '2024-12-04 08:00:00', 8),
+(5, 2, '2024-12-05 16:00:00', 3),
+(6, 3, '2024-12-06 23:00:00', 4),
+(7, 1, '2024-12-07 08:00:00', 9),
+(8, 2, '2024-12-08 16:00:00', 5),
+(9, 3, '2024-12-09 23:00:00', 2),
+(10, 1, '2024-12-10 08:00:00', 10),
+(11, 2, '2024-12-11 16:00:00', 6),
+(12, 3, '2024-12-12 23:00:00', 7),
+(13, 1, '2024-12-13 08:00:00', 5),
+(14, 2, '2024-12-14 16:00:00', 4),
+(15, 3, '2024-12-15 23:00:00', 8),
+(16, 1, '2024-12-16 08:00:00', 9),
+(17, 2, '2024-12-17 16:00:00', 5),
+(18, 3, '2024-12-18 23:00:00', 6),
+(19, 1, '2024-12-19 08:00:00', 7),
+(20, 2, '2024-12-20 16:00:00', 8),
+(21, 3, '2024-12-21 23:00:00', 3),
+(22, 1, '2024-12-22 08:00:00', 4),
+(23, 2, '2024-12-23 16:00:00', 6),
+(24, 3, '2024-12-24 23:00:00', 9),
+(25, 1, '2024-12-25 08:00:00', 10),
+(26, 2, '2024-12-26 16:00:00', 6),
+(27, 3, '2024-12-27 23:00:00', 4),
+(28, 1, '2024-12-28 08:00:00', 7),
+(29, 2, '2024-12-29 16:00:00', 5),
+(30, 3, '2024-12-30 23:00:00', 8);
+
 
 
 INSERT INTO sluzbena_putovanja (id_zaposlenik, pocetni_datum, zavrsni_datum, svrha_putovanja, odrediste, troskovi) VALUES

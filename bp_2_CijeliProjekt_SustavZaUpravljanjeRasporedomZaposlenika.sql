@@ -49,8 +49,7 @@ CREATE TABLE smjene (
     FOREIGN KEY (id_vrsta_smjene) REFERENCES vrsta_smjene(id)
 );
 
-
--- Tablica bolovanja
+-- Tablica Bolovanja
 CREATE TABLE bolovanje(
     id INT PRIMARY KEY AUTO_INCREMENT,
     id_zaposlenik INT NOT NULL,

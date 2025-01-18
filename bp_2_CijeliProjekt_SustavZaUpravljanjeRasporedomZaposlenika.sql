@@ -347,8 +347,27 @@ select * from raspored_rada;
 
 INSERT INTO evidencija_rada (id_zaposlenik, datum, vrijeme_dolaska, vrijeme_odlaska)
 VALUES
--- Prosinac 2024
-(1, '2024-12-01', '08:00:00', '16:00:00'), 
+-- Prosinac 2024 (radni dani, bez vikenda)
+(1, '2024-12-02', '08:00:00', '16:00:00'),
+(1, '2024-12-03', '08:00:00', '16:00:00'),
+(1, '2024-12-04', '08:00:00', '16:00:00'),
+(1, '2024-12-05', '08:00:00', '16:00:00'),
+(1, '2024-12-06', '08:00:00', '16:00:00'),
+(1, '2024-12-09', '08:00:00', '16:00:00'),
+(1, '2024-12-10', '08:00:00', '16:00:00'),
+(1, '2024-12-11', '08:00:00', '16:00:00'),
+(1, '2024-12-12', '08:00:00', '16:00:00'),
+(1, '2024-12-13', '08:00:00', '16:00:00'),
+(1, '2024-12-16', '08:00:00', '16:00:00'),
+(1, '2024-12-17', '08:00:00', '16:00:00'),
+(1, '2024-12-18', '08:00:00', '16:00:00'),
+(1, '2024-12-19', '08:00:00', '16:00:00'),
+(1, '2024-12-20', '08:00:00', '16:00:00'),
+(1, '2024-12-23', '08:00:00', '16:00:00'),
+(1, '2024-12-24', '08:00:00', '16:00:00'),
+(1, '2024-12-27', '08:00:00', '16:00:00'),
+(1, '2024-12-30', '08:00:00', '16:00:00'),
+(1, '2024-12-31', '08:00:00', '16:00:00'),
 (2, '2024-12-01', '16:00:00', '23:59:59'),
 (3, '2024-12-01', '08:00:00', '16:00:00'), 
 (4, '2024-12-01', '16:00:00', '23:59:59'),
@@ -561,6 +580,37 @@ VALUES
 /*----------------------------------------------------------------------------------*/
 -- Pogledi, Procedure, Funkcije, Slozeni upiti
 -- Slozeni upiti
+-- Mateo
+-- Zaposlenici s najviše odrađenih sati u proteklom mjesecu
+SELECT CONCAT(ime, ' ', prezime) AS zaposlenik, email, godina_mjesec, (radni_sati + prekovremeni_sati) AS ukupno_sati 
+FROM place AS p 
+JOIN zaposlenik AS z ON p.id_zaposlenik = z.id 
+WHERE godina_mjesec = DATE_FORMAT(CURDATE() - INTERVAL 1 MONTH, '%Y-%m-01') 
+ORDER BY ukupno_sati DESC LIMIT 5;
+
+-- Popis svih zaposlenika s njihovim odjelima i ukupnom plaćom u određenom mjesecu
+SELECT z.id AS zaposlenik_id, CONCAT(ime, ' ', prezime) AS puno_ime, o.naziv AS odjel, ukupna_placa AS placa 
+FROM zaposlenik z 
+JOIN odjel o ON z.id_odjel = o.id 
+JOIN place p ON z.id = p.id_zaposlenik;
+
+
+--  Zaposlenici koji su radili više od 15 sati prekovremeno u određenom mjesecu
+SELECT z.id AS zaposlenik_id, CONCAT(ime, ' ', prezime) AS puno_ime, prekovremeni_sati 
+FROM zaposlenik z 
+JOIN place p ON z.id = p.id_zaposlenik 
+WHERE godina_mjesec = '2025-01-01' AND prekovremeni_sati > 15;
+
+-- Projekti s rokovima koji ističu u sljedećih 7 dana
+SELECT naziv, opis, datum_zavrsetka 
+FROM projekti 
+WHERE status = 'aktivni' AND datum_zavrsetka BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY);
+
+-- Lista prekovremenih zahtjeva koji su odbijeni s razlozima
+SELECT z.id AS zaposlenik_id, CONCAT(ime, ' ', prezime) AS puno_ime, datum_prekovremeni, sati, razlog 
+FROM zaposlenik AS z 
+JOIN zahtjev_prekovremeni AS zp ON z.id = zp.id_zaposlenik 
+WHERE zp.status_pre = 'odbijen';
 
 
 
@@ -985,7 +1035,7 @@ BEGIN
     SELECT COUNT(*) INTO bolovanje 
     FROM bolovanje WHERE id_zaposlenik = zaposlenik_id AND MONTH(pocetni_datum) = MONTH(CURDATE());
 
-    SET mjesecna = (broj_sati * std_placa) + (prekovremeni * std_placa * 2) - (bolovanje * 8 * std_placa);
+    SET mjesecna = ((broj_sati * std_placa) + (prekovremeni * std_placa * 2) - (bolovanje * 3 * std_placa));
 
     INSERT INTO place (id_zaposlenik, godina_mjesec, radni_sati, prekovremeni_sati, bolovanje_dani, ukupna_placa)
     VALUES (zaposlenik_id, DATE(CURDATE()), broj_sati, prekovremeni, bolovanje, mjesecna)

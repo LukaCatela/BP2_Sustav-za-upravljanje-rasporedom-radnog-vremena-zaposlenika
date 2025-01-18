@@ -26,8 +26,7 @@ BEGIN
         SELECT id, id_zaposlenik, pocetni_datum, zavrsni_datum
         FROM godisnji_odmori
         WHERE status = 'na čekanju'
-        ORDER BY datum_podnosenja; 
-		-- treba se promijeniti da se sortira po razini vaznosti u firmi (rola, npr. direktor - 999, menađer - 10, senior zaposlenik - 5, junior zaposlenik - 3, i slično)
+        ORDER BY datum_podnosenja;
         
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
     
@@ -131,3 +130,104 @@ CALL korisnikPrihvacaGodisnji(TRUE, 3);
 CALL korisnikPrihvacaGodisnji(FALSE, 4);
 
 SELECT * FROM godisnji_odmori;
+
+
+DROP PROCEDURE IF EXISTS GenerirajRaspored;
+DELIMITER //
+
+CREATE PROCEDURE GenerirajRaspored(
+    IN pocetni_datum DATE, 
+    IN zavrsni_datum DATE, 
+    IN maxBrojUSmjeni INT
+)
+BEGIN
+    DECLARE trenutni_datum DATE;
+    DECLARE odjel_id INT;
+    DECLARE smjena_id INT;
+    DECLARE min_zaposlenika INT;
+    DECLARE zaposlenik_id INT;
+    DECLARE done INT DEFAULT 0;
+
+    DECLARE odjel_cur CURSOR FOR 
+        SELECT id FROM odjel;
+    
+    DECLARE smjena_cur CURSOR FOR 
+        SELECT id, min_broj_zaposlenika FROM smjene;
+    
+    DECLARE zaposlenik_cur CURSOR FOR 
+        SELECT id, id_odjel FROM zaposlenik ORDER BY datum_zaposljavanja ASC;
+    
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+    SET trenutni_datum = pocetni_datum;
+
+    WHILE trenutni_datum <= zavrsni_datum DO
+        OPEN odjel_cur;
+        SET done = 0;
+
+        odjeli_loop: LOOP
+            FETCH odjel_cur INTO odjel_id;
+            IF done = 1 THEN 
+                SET done = 0;
+                LEAVE odjeli_loop;
+            END IF;
+
+            OPEN smjena_cur;
+            SET done = 0;
+
+            smjene_loop: LOOP
+                FETCH smjena_cur INTO smjena_id, min_zaposlenika;
+                IF done = 1 THEN 
+                    SET done = 0; 
+                    LEAVE smjene_loop;
+                END IF;
+
+                OPEN zaposlenik_cur;
+                SET done = 0;
+
+                SET min_zaposlenika = LEAST(min_zaposlenika, maxBrojUSmjeni);
+
+                zaposlenici_loop: LOOP
+                    FETCH zaposlenik_cur INTO zaposlenik_id, odjel_id;
+                    IF done = 1 THEN 
+                        SET done = 0;
+                        LEAVE zaposlenici_loop;
+                    END IF;
+
+                    IF NOT EXISTS (
+                        SELECT 1 FROM raspored_rada 
+                        WHERE id_zaposlenik = zaposlenik_id 
+                        AND datum = trenutni_datum
+                    ) AND NOT EXISTS (
+                        SELECT 1 FROM godisnji_odmori 
+                        WHERE id_zaposlenik = zaposlenik_id 
+                        AND trenutni_datum BETWEEN pocetni_datum AND zavrsni_datum
+                    ) THEN
+                    
+                        INSERT INTO raspored_rada (id_zaposlenik, id_smjena, datum)
+                        VALUES (zaposlenik_id, smjena_id, trenutni_datum);
+                    
+                        SET min_zaposlenika = min_zaposlenika - 1;
+                        
+                        IF min_zaposlenika = 0 THEN
+                            LEAVE zaposlenici_loop;
+                        END IF;
+                    END IF;
+
+                END LOOP;
+                CLOSE zaposlenik_cur;
+
+            END LOOP;
+            CLOSE smjena_cur;
+
+        END LOOP;
+        CLOSE odjel_cur;
+        
+        SET trenutni_datum = DATE_ADD(trenutni_datum, INTERVAL 1 DAY);
+    END WHILE;
+END //
+
+DELIMITER ;
+
+CALL GenerirajRaspored('2025-05-01', '2025-05-31', 5);
+SELECT * FROM raspored_rada ORDER BY datum;

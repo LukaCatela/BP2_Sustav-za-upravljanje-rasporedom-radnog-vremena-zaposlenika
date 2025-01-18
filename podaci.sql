@@ -8,6 +8,12 @@ INSERT INTO odjel (naziv, opis) VALUES
 ('Financije', 'Odjel za financijsko planiranje i izvještavanje'),
 ('Skladište', 'Odljel koji se bavi skladištenjem i distribucijom proizvoda');
 
+INSERT INTO smjene (vrsta_smjene, pocetak_smjene, kraj_smjene, min_broj_zaposlenika)
+VALUES ('jutarnja', '08:00:00', '16:00:00', 1),
+       ('popodnevna', '16:00:00', '23:59:00', 1),
+       ('noćna', '00:00:00', '08:00:00', 1);
+
+
 INSERT INTO zaposlenik (ime, prezime, oib, spol, email, broj_telefona, datum_zaposljavanja, pozicija, status_zaposlenika, satnica, id_odjel) VALUES
 ('Ivana', 'Horvat', '12345678901', 'Ž', 'ivana.horvat@example.com', '0912345678', '2022-03-15', 'Programer', 'Aktivan', 45.00, 1),
 ('Marko', 'Jurić', '23456789012', 'M', 'marko.juric@example.com', '0923456789', '2021-05-10', 'Prodajni menadžer', 'Aktivan', 50.00, 2),
@@ -60,11 +66,11 @@ INSERT INTO evidencija_rada (id_zaposlenik, datum, vrijeme_dolaska, vrijeme_odla
 (10, '2024-11-10', '09:00:00', '17:00:00');
 
 INSERT INTO godisnji_odmori (id_zaposlenik, pocetni_datum, zavrsni_datum, datum_podnosenja, godina, broj_dana) VALUES
-(1, '2025-06-01', '2025-06-15', '2025-05-15', 2025, 10),
-(2, '2025-06-02', '2025-06-25', '2025-06-15', 2025, 6),
-(3, '2025-06-03', '2025-06-17', '2025-07-10', 2025, 5),
-(4, '2025-05-04', '2025-06-10', '2025-08-10', 2025, 7),
-(5, '2025-10-15', '2025-10-20', '2025-09-20', 2025, 6);
+(1, '2025-06-01', '2025-06-15', '2025-01-15', 2025, 14),
+(2, '2025-06-02', '2025-06-25', '2025-01-15', 2025, 23),
+(3, '2025-06-03', '2025-06-17', '2025-01-10', 2025, 14),
+(4, '2025-05-04', '2025-06-10', '2025-01-10', 2025, 41),
+(5, '2025-10-15', '2025-10-20', '2025-01-20', 2025, 5);
 
 INSERT INTO zahtjev_prekovremeni (id_zaposlenik, datum_prekovremeni, sati, razlog, status_pre) VALUES
 (1, '2024-11-02', 2, 'Povećani obim posla', 'odobren'),
@@ -101,6 +107,7 @@ INSERT INTO napomene (id_zaposlenik, datum, napomena, tip) VALUES
 (3, '2024-11-03 11:00:00', 'Izvrsno obavljen zadatak', 'pozitivna'),
 (4, '2024-11-04 12:00:00', 'Neispunjenje rokova za zadatak', 'negativna'),
 (5, '2024-11-05 14:00:00', 'Redovito izvršavanje obveza', 'pozitivna');
+
 
 INSERT INTO projekti (naziv, opis, datum_pocetka, datum_zavrsetka, status, odgovorna_osoba)
 VALUES

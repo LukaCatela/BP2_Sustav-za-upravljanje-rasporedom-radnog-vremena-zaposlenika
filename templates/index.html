@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Popis Podataka</title>
+    <title>Pregled Podataka</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -13,59 +13,52 @@
 
     <main>
         <div>
-            <button onclick="fetchTableData('zaposlenici')">Zaposlenici</button>
-            <button onclick="fetchTableData('smjene')">Smjene</button>
-            <button onclick="fetchTableData('bolovanje')">Bolovanje</button>
-            <button onclick="fetchTableData('kalendar_godisnjih_odmora')">kalendar_godisnjih_odmora</button>
-            <button onclick="fetchTableData('ogranicenja_tvrtke')">ogranicenja_tvrtke</button>
-            <button onclick="fetchTableData('place')">place</button>
-            <button onclick="fetchTableData('prisutnost')">prisutnost</button>
-            <button onclick="fetchTableData('radni_sati')">radni_sati</button>
-            <button onclick="fetchTableData('raspored_rada')">raspored_rada</button>
-            <button onclick="fetchTableData('zahtjev_prekovremeni')">zahtjev_prekovremeni</button>
-            <button onclick="fetchTableData('zeljene_smjene')">zeljene_smjene</button>
-            <button onclick="fetchTableData('zahtjevni_godisnji_odmor')">zahtjevni_godisnji_odmor</button>
-            <!-- Add more buttons for other tables -->
+            <button onclick="window.location.href='/zaposlenik'">Zaposlenici</button>
+            <button onclick="window.location.href='/bolovanje'">Bolovanje</button>
+            <button onclick="window.location.href='/dopust'">Dopust</button>
+            <button onclick="window.location.href='/evidencija_rada'">Evidencija Rada</button>
+            <button onclick="window.location.href='/godisnji_odmori'">Godišnji Odmori</button>
+            <button onclick="window.location.href='/napomene'">Napomene</button>
+            <button onclick="window.location.href='/odjel'">Odjel</button>
+            <button onclick="window.location.href='/place'">Plaće</button>
+            <button onclick="window.location.href='/preferencije_smjena'">Preferencije Smjena</button>
+            <button onclick="window.location.href='/projekti'">Projekti</button>
+            <button onclick="window.location.href='/raspored_rada'">Raspored Rada</button>
+            <button onclick="window.location.href='/sluzbena_putovanja'">Službena Putovanja</button>
+            <button onclick="window.location.href='/smjene'">Smjene</button>
+            <button onclick="window.location.href='/vrsta_smjene'">Vrsta Smjene</button>
+            <button onclick="window.location.href='/zadaci'">Zadaci</button>
+            <button onclick="window.location.href='/zahtjev_prekovremeni'">Zahtjev Prekovremeni</button>
         </div>
 
+        {% if message %}
+        <p id="status-message" style="text-align: center; margin-top: 1rem; color: red;">{{ message }}</p>
+        {% endif %}
+
+        {% if table_data %}
         <table>
-            <thead id="table-header">
-                <!-- Headers will be dynamically updated -->
+            <thead>
+                <tr>
+                    {% for key in table_data[0].keys() %}
+                    <th>{{ key }}</th>
+                    {% endfor %}
+                </tr>
             </thead>
-            <tbody id="table-body">
-                <!-- Data will be dynamically inserted here -->
+            <tbody>
+                {% for row in table_data %}
+                <tr>
+                    {% for value in row.values() %}
+                    <td>{{ value }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
             </tbody>
         </table>
+        {% else %}
+        {% if not message %}
+        <p style="text-align: center; margin-top: 1rem;">Nema podataka za prikaz.</p>
+        {% endif %}
+        {% endif %}
     </main>
-
-    <script>
-        async function fetchTableData(table) {
-            try {
-                const response = await fetch(`/${table}`);
-                const data = await response.json();
-
-                const tableHeader = document.getElementById('table-header');
-                const tableBody = document.getElementById('table-body');
-
-                tableHeader.innerHTML = '';
-                tableBody.innerHTML = '';
-
-                if (data.length > 0) {
-                    const headers = Object.keys(data[0]);
-                    const headerRow = headers.map(header => `<th>${header}</th>`).join('');
-                    tableHeader.innerHTML = `<tr>${headerRow}</tr>`;
-
-                    data.forEach(row => {
-                        const rowHTML = headers.map(header => `<td>${row[header]}</td>`).join('');
-                        tableBody.insertAdjacentHTML('beforeend', `<tr>${rowHTML}</tr>`);
-                    });
-                } else {
-                    tableBody.innerHTML = '<tr><td colspan="10">Nema postojecih podataka</td></tr>';
-                }
-            } catch (error) {
-                console.error('Error fetching data:', error);
-            }
-        }
-    </script>
 </body>
 </html>

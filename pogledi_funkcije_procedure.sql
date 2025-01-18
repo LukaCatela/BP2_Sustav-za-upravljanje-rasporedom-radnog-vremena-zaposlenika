@@ -430,4 +430,20 @@ FROM zaposlenik AS z
 JOIN zahtjev_prekovremeni AS zp ON z.id = zp.id_zaposlenik 
 WHERE zp.status_pre = 'odbijen';
 
+-- TRIGGERI
+
+-- Automatsko postavljanje statusa projekta na "završeni"
+DELIMITER //
+CREATE TRIGGER trg_projekt_status_zavrsen
+BEFORE UPDATE ON projekti
+FOR EACH ROW
+BEGIN
+	IF NEW.datum_zavrsetka IS NOT NULL AND NEW.status != 'završeni' THEN
+		SET NEW.status = 'završeni';
+	END IF;
+END //
+
+DELIMITER ;
+
+
 

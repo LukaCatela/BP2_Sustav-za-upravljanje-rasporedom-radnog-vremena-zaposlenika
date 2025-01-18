@@ -1,4 +1,5 @@
 USE bp_2_projekt;
+-- Pogledi, Procedure, Funkcije
 
 -- 1. View zaposlenici i odjeli
 DROP VIEW IF EXISTS zaposlenici_odjeli;
@@ -24,6 +25,7 @@ WHERE status = 'aktivni';
 
 SELECT * FROM aktivni_projekti;
 
+/*----------------------------------------------------------------------------------*/
 -- PROCEDURE ----
 -- PROCEDURA BR.1 DODAJ ZAPOSLENIKA
 DROP PROCEDURE IF EXISTS dodaj_zaposlenika;
@@ -101,8 +103,31 @@ BEGIN
 END //
 DELIMITER ;
 
-
--- PROCEDURA BR.5 DODAVANJE BILJESKE ZA ZAPOSLENIKA
+-- PROCEDURA BR.5 dodavanje godišnjeg odmora za zaposlenika
+DROP PROCEDURE IF EXISTS dodaj_godisnji;
+DELIMITER //
+CREATE PROCEDURE dodaj_godisnji(IN p_id_zaposlenik INT, IN p_pocetni_datum DATE, IN p_zavrsni_datum DATE, IN p_broj_dana INT)
+BEGIN
+INSERT INTO godisnji_odmori(
+id_zaposlenik, pocetni_datum, zavrsni_datum, broj_dana)
+VALUES(p_id_zaposlenik, p_pocetni_datum, p_zavrsni_datum, YEAR(p_pocetni_datum), p_broj_dana);
+END //
+DELIMITER ;
+-- PROCEDURA BR.6 prikaz svih smjena zaposlenika za određeni dan
+DROP PROCEDURE IF EXISTS prikaz_smjene_zaposlenika;
+DELIMITER //
+CREATE PROCEDURE prikaz_smjene_zaposlenika(IN p_datum DATE)
+BEGIN
+    SELECT s.vrsta_smjene, z.ime, z.prezime
+    FROM smjene s
+    JOIN raspored_rada rr ON s.id = rr.id_smjena
+    JOIN zaposlenik z ON rr.id_zaposlenik = z.id
+    WHERE rr.datum = p_datum;
+END //
+DELIMITER ;
+CALL prikaz_smjene_zaposlenika();
+select * from smjene;
+-- PROCEDURA BR.7 DODAVANJE BILJESKE ZA ZAPOSLENIKA
 DROP PROCEDURE IF EXISTS dodavanje_biljeske_za_zaposlenika;
 DELIMITER //
 CREATE PROCEDURE dodaj_biljesku (
@@ -117,63 +142,308 @@ INSERT INTO napomene (id_zaposlenik, datum, napomena, tip)
 END //
 
 DELIMITER ;
+-- PROCEDURA BR.8 Odobri godisnji
+DROP PROCEDURE IF EXISTS odobrigodisnji;
 
-
-
--- PROCEDURA BR.6 DODAVANJE PREKOVREMENIH SATI ZAPOSLENIKU
-DROP PROCEDURE IF EXISTS dodavanje_prekovremenih_sati_zaposleniku;
 DELIMITER //
-CREATE PROCEDURE dodaj_prekovremene_sate (
-    IN p_id_zaposlenik INT,
-    IN p_datum_prekovremeni DATE,
-    IN p_sati INT,
-    IN p_razlog VARCHAR(1000)
-)
-BEGIN 
-	INSERT INTO zahtjev_prekovremeni (id_zaposlenik, datum_prekovremeni, sati, razlog, status_pre)
-    VALUES (p_id_zaposlenik, p_datum_prekovremeni, p_sati, p_razlog, 'na čekanju');
-END //
+CREATE PROCEDURE odobrigodisnji()
+BEGIN
+    DECLARE gotovo INT DEFAULT 0;
+    DECLARE unesi_id INT;
+    DECLARE pocetak DATE;
+    DECLARE kraj DATE;
+    DECLARE min_zaposlenika INT DEFAULT 3; 
 
+    DECLARE izlazni_cur CURSOR FOR 
+    SELECT id, pocetni_datum, zavrsni_datum 
+    FROM godisnji_odmori 
+    WHERE status = 'na čekanju';
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET gotovo = 1;
+
+    OPEN izlazni_cur;
+
+    citaj_loop: LOOP
+        FETCH izlazni_cur INTO unesi_id, pocetak, kraj;
+        IF gotovo THEN
+            LEAVE citaj_loop;
+        END IF;
+
+        IF NOT EXISTS (
+            SELECT 1
+            FROM godisnji_odmori
+            WHERE status = 'odobren'
+            AND (
+                (pocetni_datum BETWEEN pocetak AND kraj) OR
+                (zavrsni_datum BETWEEN pocetak AND kraj) OR
+                (pocetak BETWEEN pocetni_datum AND zavrsni_datum)
+            )
+        ) THEN
+           
+            IF (SELECT COUNT(*) 
+                FROM zaposlenik z
+                WHERE z.id NOT IN (
+                    SELECT id_zaposlenik 
+                    FROM godisnji_odmori 
+                    WHERE status = 'odobren' 
+                    AND (pocetni_datum BETWEEN pocetak AND kraj 
+                        OR zavrsni_datum BETWEEN pocetak AND kraj))
+            ) >= min_zaposlenika THEN
+			
+                UPDATE godisnji_odmori
+                SET status = 'odobren'
+                WHERE id = unesi_id;
+            END IF;
+        END IF;
+    END LOOP;
+
+    CLOSE izlazni_cur;
+END //
+DELIMITER ;
+
+SELECT * FROM godisnji_odmori;
+
+CALL odobrigodisnji();
+-- PROCEDURA BR.9 Dodaj Zaposlenike u smjene
+DROP PROCEDURE IF EXISTS dodajZaposlenikeUSmjene;
+
+DELIMITER //
+CREATE PROCEDURE dodajZaposlenikeUSmjene()
+BEGIN
+    DECLARE gotovo INT DEFAULT 0;
+    DECLARE zaposlenik INT;
+    DECLARE smjena_id INT;
+    DECLARE datum_smjene DATE;
+
+    DECLARE smjena_cur CURSOR FOR 
+    SELECT id, DATE(pocetak_smjene) AS datum_smjene 
+    FROM smjene 
+    WHERE id NOT IN (SELECT id FROM raspored_rada);
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET gotovo = 1;
+
+    OPEN smjena_cur;
+
+    loopaj: LOOP
+        FETCH smjena_cur INTO smjena_id, datum_smjene;
+        IF gotovo THEN
+            LEAVE loopaj;
+        END IF;
+
+        SET zaposlenik = (
+            SELECT id_zaposlenik 
+            FROM preferencije_smjena 
+            WHERE id = smjena_id
+            AND id_zaposlenik NOT IN (
+                SELECT id_zaposlenik 
+                FROM raspored_rada 
+                WHERE datum = datum_smjene
+            )
+            LIMIT 1
+        );
+
+        IF zaposlenik IS NOT NULL THEN
+            INSERT INTO raspored_rada (id_zaposlenik, id_smjena, datum) 
+            VALUES (zaposlenik, smjena_id, datum_smjene);
+        END IF;
+    END LOOP;
+
+    CLOSE smjena_cur;
+END //
 DELIMITER ;
 
 
+SELECT * FROM smjene;
+SELECT * FROM raspored_rada;
+SELECT * FROM preferencije_smjena;
 
--- PROCEDURA BR.7 IZRACUN UKUPNE PLACE ZAPOSLENIKA
-DROP PROCEDURE IF EXISTS izracun_ukupne_place_zaposlenika;
+DROP PROCEDURE IF EXISTS prerasporediZaposlenikeGodisnji;
+DELIMITER $$
+-- maxNaGodisnjem -> najviše dozvoljeno zaposlenika firme na godisnjem
+-- maxShift-> koliko se najviše dana smije pomaknuti godišnji
+
+-- PROCEDURA BR.10 Prerasporedi zaposlenike godisnji
+
+CREATE PROCEDURE prerasporediZaposlenikeGodisnji(IN maxNaGodisnjem INT, IN maxShift INT)  
+BEGIN
+    DECLARE done INT DEFAULT 0;
+    
+    DECLARE v_id INT;
+    DECLARE v_zaposlenik_id INT;
+    DECLARE v_orig_start DATE;
+    DECLARE v_orig_end DATE;
+    
+    DECLARE moze_se_odobriti BOOLEAN;
+    DECLARE trenutni_datum DATE;
+    DECLARE ct INT;
+    
+    DECLARE s INT DEFAULT 0;
+    DECLARE s_sign INT DEFAULT 1;
+    DECLARE s_step INT DEFAULT 0;
+      
+    DECLARE c CURSOR FOR
+        SELECT id, id_zaposlenik, pocetni_datum, zavrsni_datum
+        FROM godisnji_odmori
+        WHERE status = 'na čekanju'
+        ORDER BY datum_podnosenja; 
+		-- treba se promijeniti da se sortira po razini vaznosti u firmi (rola, npr. direktor - 999, menađer - 10, senior zaposlenik - 5, junior zaposlenik - 3, i slično)
+        
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+    
+    OPEN c;
+    main_loop: LOOP
+        FETCH c INTO v_id, v_zaposlenik_id, v_orig_start, v_orig_end;
+        IF done THEN
+            LEAVE main_loop;
+        END IF;
+        
+        SET s = 0;
+        SET s_sign = 1;
+        SET s_step = 0;
+
+        SET moze_se_odobriti = FALSE;
+
+        SHIFT_SEARCH: WHILE s_step <= maxShift * 2 DO
+            -- Shift se konstruira tako da se rang širenja širi i u pozitivnom i u negativnom smjeru kako bi se pronašao najbliži idealni novi datum (zig-zag: 0, +1, -1, +2, -2, ...)
+            IF s_step = 0 THEN
+                SET s = 0;
+            ELSE
+                IF s_sign = 1 THEN
+                    SET s = s_step;
+                ELSE
+                    SET s = -s_step;
+                END IF;
+            END IF;
+            
+            SET @novi_pocetni_datum = DATE_ADD(v_orig_start, INTERVAL s DAY);
+            SET @novi_zavrsni_datum   = DATE_ADD(v_orig_end,   INTERVAL s DAY);
+
+            SET moze_se_odobriti = TRUE;
+            SET trenutni_datum = @novi_pocetni_datum;
+
+            day_check: WHILE trenutni_datum <= @novi_zavrsni_datum DO
+                SELECT COUNT(*) INTO ct
+                FROM godisnji_odmori
+                WHERE status = 'odobren' OR status = 'čeka prihvaćanje'
+                  AND trenutni_datum BETWEEN pocetni_datum AND zavrsni_datum;
+
+                IF ct >= maxNaGodisnjem THEN
+                    SET moze_se_odobriti = FALSE;
+                    LEAVE day_check;
+                END IF;
+
+                SET trenutni_datum = DATE_ADD(trenutni_datum, INTERVAL 1 DAY);
+            END WHILE;
+
+            IF moze_se_odobriti THEN
+                UPDATE godisnji_odmori
+                   SET pocetni_datum = @novi_pocetni_datum,
+                       zavrsni_datum = @novi_zavrsni_datum,
+                       status = 'čeka prihvaćanje'
+                 WHERE id = v_id;
+                
+                LEAVE SHIFT_SEARCH;
+            END IF;
+
+            IF s_sign = 1 THEN
+                SET s_sign = -1; 
+            ELSE
+                SET s_sign = 1;
+                SET s_step = s_step + 1;
+            END IF;
+        END WHILE;
+
+        IF NOT moze_se_odobriti THEN
+            UPDATE godisnji_odmori
+               SET status = 'odbijen'
+             WHERE id = v_id;
+        END IF;
+    END LOOP main_loop;
+
+    CLOSE c;
+END$$
+
+DELIMITER ;
+
+CALL prerasporediZaposlenikeGodisnji(3, 60);
+
+SELECT * FROM godisnji_odmori;
+
+
+DROP PROCEDURE IF EXISTS korisnikPrihvacaGodisnji;
+DELIMITER $$
+-- PROCEDURA BR.11 Korisnik prihvaca godisnji
+CREATE PROCEDURE korisnikPrihvacaGodisnji(IN status_prihvacanja BOOL, IN id_godisnji INT)
+BEGIN
+	IF status_prihvacanja THEN
+		UPDATE godisnji_odmori SET status = 'odobren' WHERE id = id_godisnji AND status = 'čeka prihvaćanje';
+	ELSE
+		UPDATE godisnji_odmori SET status = 'odbijen' WHERE id = id_godisnji AND status = 'čeka prihvaćanje';
+	END IF;
+END$$
+DELIMITER ;
+
+-- TESTIRANJE 
+CALL korisnikPrihvacaGodisnji(TRUE, 1);
+CALL korisnikPrihvacaGodisnji(FALSE, 2);
+CALL korisnikPrihvacaGodisnji(TRUE, 3);
+CALL korisnikPrihvacaGodisnji(FALSE, 4);
+
+SELECT * FROM godisnji_odmori;
+
+
+
+
+
+
+
+-- MATEO upiti 
+
+-- Zaposlenici s najviše odrađenih sati u proteklom mjesecu
+SELECT CONCAT(ime, ' ', prezime) AS zaposlenik, email, godina_mjesec, (radni_sati + prekovremeni_sati) AS ukupno_sati 
+FROM place AS p 
+JOIN zaposlenik AS z ON p.id_zaposlenik = z.id 
+WHERE godina_mjesec = DATE_FORMAT(CURDATE() - INTERVAL 1 MONTH, '%Y-%m-01') 
+ORDER BY ukupno_sati DESC LIMIT 5;
+
+-- Popis svih zaposlenika s njihovim odjelima i ukupnom plaćom u određenom mjesecu
+SELECT z.id AS zaposlenik_id, CONCAT(ime, ' ', prezime) AS puno_ime, o.naziv AS odjel, ukupna_placa AS placa 
+FROM zaposlenik z 
+JOIN odjel o ON z.id_odjel = o.id 
+JOIN place p ON z.id = p.id_zaposlenik
+WHERE godina_mjesec = '2025-01-01';
+
+--  Zaposlenici koji su radili više od 15 sati prekovremeno u određenom mjesecu
+SELECT z.id AS zaposlenik_id, CONCAT(ime, ' ', prezime) AS puno_ime, prekovremeni_sati 
+FROM zaposlenik z 
+JOIN place p ON z.id = p.id_zaposlenik 
+WHERE godina_mjesec = '2025-01-01' AND prekovremeni_sati > 15;
+
+-- Projekti s rokovima koji ističu u sljedećih 7 dana
+SELECT naziv, opis, datum_zavrsetka 
+FROM projekti 
+WHERE status = 'aktivni' AND datum_zavrsetka BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY);
+
+-- Lista prekovremenih zahtjeva koji su odbijeni s razlozima
+SELECT z.id AS zaposlenik_id, CONCAT(ime, ' ', prezime) AS puno_ime, datum_prekovremeni, sati, razlog 
+FROM zaposlenik AS z 
+JOIN zahtjev_prekovremeni AS zp ON z.id = zp.id_zaposlenik 
+WHERE zp.status_pre = 'odbijen';
+
+-- TRIGGERI
+
+-- Automatsko postavljanje statusa projekta na "završeni"
 DELIMITER //
-
-CREATE PROCEDURE izracun_ukupne_place_zaposlenika (
-    IN p_id_zaposlenik INT,
-    IN p_godina_mjesec DATE
-)
-BEGIN 
-	DECLARE zap_odradeni_sati INT DEFAULT 0;
-    DECLARE zap_prekovremeni INT DEFAULT 0;
-    DECLARE zap_bolovanje INT DEFAULT 0;
-    DECLARE zap_ukupno_placa DECIMAL (10,2);
-    DECLARE zap_satnica DECIMAL (10, 2);
-
-SELECT radni_sati, prekovremeni_sati, bolovanje_dani
-INTO zap_odradeni_sati, zap_prekovremeni, zap_bolovanje
-FROM place
-WHERE id_zaposlenik = p_id_zaposlenik AND godina_mjesec = p_godina_mjesec;
-
-SELECT satnica 
-INTO zap_satnica
-FROM zaposlenik
-WHERE id = p_id_zaposlenik;
-
-SET zap_ukupno_placa = (zap_satnica * zap_odradeni_sati) + (zap_satnica * 1.5 * zap_prekovremeni);
-
-IF EXISTS (SELECT 1 FROM place WHERE id_zaposlenik = p_id_zaposlenik AND godina_mjesec = p_godina_mjesec) THEN
-        UPDATE place
-        SET ukupna_placa = zap_ukupno_placa
-        WHERE id_zaposlenik = p_id_zaposlenik AND godina_mjesec = p_godina_mjesec;
-	ELSE 
-		INSERT INTO place (id_zaposlenik, godina_mjesec, radni_sati, prekovremeni_sati, bolovanje_dani, ukupna_placa)
-        VALUES (p_id_zaposlenik, p_godina_mjesec, zap_odradeni_sati, zap_prekovremeni, zap_bolovanje, zap_ukupno_placa);
+CREATE TRIGGER trg_projekt_status_zavrsen
+BEFORE UPDATE ON projekti
+FOR EACH ROW
+BEGIN
+	IF NEW.datum_zavrsetka IS NOT NULL AND NEW.status != 'završeni' THEN
+		SET NEW.status = 'završeni';
 	END IF;
 END //
+
 DELIMITER ;
 
-CALL izracun_ukupne_place_zaposlenika(2, '2024-06-12');
+
+

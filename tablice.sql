@@ -29,15 +29,15 @@ CREATE TABLE zaposlenik(
     
 );
 
--- Tablica smjena 
+-- Tablica smjena
 CREATE TABLE smjene(
     id INT PRIMARY KEY AUTO_INCREMENT,
-    vrsta_smjene ENUM('1', '2', '3') NOT NULL, -- 1 jutarnja, 2 popodnevna, 3 nocna
+    vrsta_smjene ENUM('jutarnja', 'popodnevna', 'nocna') NOT NULL,
     pocetak_smjene DATETIME NOT NULL,
     kraj_smjene DATETIME NOT NULL,
     min_broj_zaposlenika TINYINT UNSIGNED NOT NULL, 
     id_odjel INTEGER NOT NULL, 
-    CONSTRAINT ck_datum_smjena CHECK(pocetak_smjene < kraj_smjene),
+    CONSTRAINT ck_datum_smjene CHECK(pocetak_smjene < kraj_smjene),
 	FOREIGN KEY (id_odjel) REFERENCES odjel(id)
 
 );

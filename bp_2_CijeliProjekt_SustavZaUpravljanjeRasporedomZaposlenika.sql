@@ -1070,5 +1070,3 @@ END //
 DELIMITER ;
 
 SELECT mjesecnaPlaca(1);
--- haha
-

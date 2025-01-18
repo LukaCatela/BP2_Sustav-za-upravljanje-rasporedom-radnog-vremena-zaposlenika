@@ -250,6 +250,13 @@ INSERT INTO zaposlenik (ime, prezime, oib, spol, email, broj_telefona, datum_zap
 ('Iva', 'Lucić', '23457887654', 'Ž', 'iva.lucic@example.com', '0923456782', '2019-07-25', 'Skladištar', 'Aktivan', 38.00, 6),
 ('Ivan', 'Bezić', '34568998765', 'M', 'ivan.bezic@example.com', '0934567893', '2021-02-01', 'IT stručnjak', 'Aktivan', 50.00, 1);
 
+/*----------------------------------------------------------------------------------*/
+CREATE USER 'ivana.horvat'@'localhost' IDENTIFIED BY 'baze123';
+
+GRANT ALL PRIVILEGES ON bp_2_projekt.* TO 'ivana.horvat'@'localhost';
+
+FLUSH PRIVILEGES;
+/*----------------------------------------------------------------------------------*/
 INSERT INTO bolovanje (id_zaposlenik, pocetni_datum, krajnji_datum, med_potvrda)
 VALUES
 (1, '2024-01-01', '2024-01-07', TRUE),
@@ -622,10 +629,31 @@ WHERE status = 'aktivni';
 SELECT * FROM aktivni_projekti;
 
 -- 3. View
+DROP VIEW IF EXISTS
+CREATE VIEW aktivni_zaposlenici AS
+SELECT z.id AS zaposlenik_id, CONCAT(z.ime, ' ', z.prezime) AS puno_ime, z.email, z.broj_telefona, o.naziv AS odjel, z.pozicija, z.satnica 
+	FROM zaposlenik z JOIN odjel o ON z.id_odjel = o.id 
+	WHERE z.status_zaposlenika = 'aktivan';
+
+SELECT * FROM aktivni_zaposlenici;
 
 -- 4. View
+DROP VIEW IF EXISTS mjesecne_place;
+CREATE VIEW mjesecne_place AS 
+SELECT p.id AS placa_id, CONCAT(z.ime, ' ', z.prezime) AS zaposlenik, p.godina_mjesec, p.radni_sati, p.prekovremeni_sati, p.ukupna_placa 
+	FROM place p 
+	JOIN zaposlenik z ON p.id_zaposlenik = z.id;
 
+SELECT * FROM mjesecne_place;
 -- 5. View
+DROP VIEW IF EXISTS troskovi_sluzbenih_putovanja;
+CREATE VIEW troskovi_sluzbenih_putovanja AS 
+SELECT sp.id AS putovanje_id, CONCAT(z.ime, ' ', z.prezime) AS zaposlenik, sp.odrediste, sp.svrha_putovanja, sp.pocetni_datum, sp.zavrsni_datum, sp.troskovi 
+	FROM sluzbena_putovanja sp 
+	JOIN zaposlenik z ON sp.id_zaposlenik = z.id;
+
+SELECT * FROM troskovi_sluzbenih_putovanja;
+
 /*----------------------------------------------------------------------------------*/
 -- PROCEDURE ----
 -- PROCEDURA BR.1 DODAJ ZAPOSLENIKA
@@ -858,13 +886,13 @@ SELECT * FROM smjene;
 SELECT * FROM raspored_rada;
 SELECT * FROM preferencije_smjena;
 
+
+-- PROCEDURA BR.10 Prerasporedi zaposlenike godisnji
+
 DROP PROCEDURE IF EXISTS prerasporediZaposlenikeGodisnji;
 DELIMITER $$
 -- maxNaGodisnjem -> najviše dozvoljeno zaposlenika firme na godisnjem
 -- maxShift-> koliko se najviše dana smije pomaknuti godišnji
-
--- PROCEDURA BR.10 Prerasporedi zaposlenike godisnji
-
 CREATE PROCEDURE prerasporediZaposlenikeGodisnji(IN maxNaGodisnjem INT, IN maxShift INT)  
 BEGIN
     DECLARE done INT DEFAULT 0;
@@ -970,10 +998,10 @@ CALL prerasporediZaposlenikeGodisnji(3, 60);
 
 SELECT * FROM godisnji_odmori;
 
+-- PROCEDURA BR.11 Korisnik prihvaca godisnji
 
 DROP PROCEDURE IF EXISTS korisnikPrihvacaGodisnji;
 DELIMITER $$
--- PROCEDURA BR.11 Korisnik prihvaca godisnji
 CREATE PROCEDURE korisnikPrihvacaGodisnji(IN status_prihvacanja BOOL, IN id_godisnji INT)
 BEGIN
 	IF status_prihvacanja THEN

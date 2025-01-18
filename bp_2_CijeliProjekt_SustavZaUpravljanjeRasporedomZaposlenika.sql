@@ -219,38 +219,42 @@ INSERT INTO odjel (naziv, opis) VALUES
 ('Skladište', 'Odljel koji se bavi skladištenjem i distribucijom proizvoda');
 
 INSERT INTO zaposlenik (ime, prezime, oib, spol, email, broj_telefona, datum_zaposljavanja, pozicija, status_zaposlenika, satnica, id_odjel) VALUES
-('Ivana', 'Horvat', '12345678901', 'Ž', 'ivana.horvat@example.com', '0912345678', '2022-03-15', 'Programer', 'Aktivan', 45.00, 1),
-('Marko', 'Jurić', '23456789012', 'M', 'marko.juric@example.com', '0923456789', '2021-05-10', 'Prodajni menadžer', 'Aktivan', 50.00, 2),
-('Ana', 'Marić', '34567890123', 'Ž', 'ana.maric@example.com', '0934567890', '2019-08-20', 'HR specijalist', 'Aktivan', 40.00, 3),
-('Petar', 'Kovač', '45678901234', 'M', 'petar.kovac@example.com', '0945678901', '2020-02-05', 'Marketing koordinator', 'Aktivan', 55.00, 4),
-('Lucija', 'Novak', '56789012345', 'Ž', 'lucija.novak@example.com', '0956789012', '2021-07-25', 'Računovođa', 'Aktivan', 50.00, 5),
-('Tomislav', 'Babić', '67890123456', 'M', 'tomislav.babic@example.com', '0967890123', '2018-11-12', 'Skladištar', 'Aktivan', 35.00, 6),
-('Marija', 'Kralj', '78901234567', 'Ž', 'marija.kralj@example.com', '0978901234', '2020-08-15', 'Asistent u ljudskim resursima', 'Aktivan', 38.00, 3),
-('Jakov', 'Savić', '89012345678', 'M', 'jakov.savic@example.com', '0989012345', '2021-01-30', 'Specijalist za digitalni marketing', 'Aktivan', 50.00, 4),
-('Jana', 'Lukić', '90123456789', 'Ž', 'jana.lukic@example.com', '0990123456', '2022-02-20', 'Administrator sustava', 'Aktivan', 47.00, 1),
-('Davor', 'Vuković', '12345098765', 'M', 'davor.vukovic@example.com', '0912345679', '2022-04-25', 'Prodajni asistent', 'Aktivan', 42.00, 2),
-('Martina', 'Petrović', '23456123456', 'Ž', 'martina.petrovic@example.com', '0923456780', '2020-10-10', 'Kreativni direktor', 'Aktivan', 60.00, 4),
-('Jure', 'Matić', '34567234567', 'M', 'jure.matic@example.com', '0934567891', '2019-06-12', 'Zamjenik direktora', 'Aktivan', 65.00, 5),
-('Nina', 'Zorić', '45678345678', 'Ž', 'nina.zoric@example.com', '0945678902', '2021-03-25', 'Pomoćnik za ljudske resurse', 'Aktivan', 40.00, 3),
-('Igor', 'Kovačić', '56789456789', 'M', 'igor.kovacic@example.com', '0956789013', '2020-06-15', 'Prodajni menadžer', 'Aktivan', 55.00, 2),
-('Tea', 'Horvat', '67890567890', 'Ž', 'tea.horvat@example.com', '0967890124', '2018-09-19', 'Interni auditor', 'Aktivan', 48.00, 5),
-('Filip', 'Jovanović', '78901678901', 'M', 'filip.jovanovic@example.com', '0978901235', '2021-12-01', 'Specijalist za SEO', 'Aktivan', 45.00, 4),
-('Maja', 'Petrić', '89012789012', 'Ž', 'maja.petric@example.com', '0989012346', '2022-06-05', 'Lektor', 'Aktivan', 30.00, 4),
-('Marin', 'Balić', '90123890123', 'M', 'marin.balic@example.com', '0990123457', '2022-01-10', 'Web dizajner', 'Aktivan', 52.00, 1),
-('Diana', 'Pavić', '12345987654', 'Ž', 'diana.pavic@example.com', '0912345680', '2019-03-15', 'Menadžer za ljudske resurse', 'Aktivan', 58.00, 3),
-('Petar', 'Ladić', '23457098765', 'M', 'petar.ladic@example.com', '0923456781', '2020-07-22', 'Koordinator za prodaju', 'Aktivan', 50.00, 2),
-('Nikolina', 'Zubić', '34568109876', 'Ž', 'nikolina.zubic@example.com', '0934567892', '2021-10-11', 'Menadžer za marketing', 'Aktivan', 56.00, 4),
-('Damir', 'Knežević', '45679210987', 'M', 'damir.knezevic@example.com', '0945678903', '2021-09-05', 'Skladištar', 'Aktivan', 36.00, 6),
-('Sanja', 'Kovačić', '56780321098', 'Ž', 'sanja.kovacic@example.com', '0956789014', '2021-11-10', 'Menadžer za IT podršku', 'Aktivan', 45.00, 1),
-('Viktor', 'Kraljević', '67891432109', 'M', 'viktor.kraljevic@example.com', '0967890125', '2020-05-20', 'Marketing asistent', 'Aktivan', 42.00, 4),
-('Anamarija', 'Tomić', '78902543210', 'Ž', 'anamarija.tomic@example.com', '0978901236', '2020-12-01', 'Prodajni asistent', 'Aktivan', 39.00, 2),
-('Luka', 'Rajić', '89013654321', 'M', 'luka.rajic@example.com', '0989012347', '2021-08-25', 'Računovođa', 'Aktivan', 48.00, 5),
-('Iva', 'Stojanović', '90124765432', 'Ž', 'iva.stojanovic@example.com', '0990123458', '2018-12-13', 'Programer', 'Aktivan', 45.00, 1),
-('Luka', 'Zorić', '12346776543', 'M', 'luka.zoric@example.com', '0912345670', '2020-05-30', 'SEO stručnjak', 'Aktivan', 55.00, 4),
-('Iva', 'Lucić', '23457887654', 'Ž', 'iva.lucic@example.com', '0923456782', '2019-07-25', 'Skladištar', 'Aktivan', 38.00, 6),
-('Ivan', 'Bezić', '34568998765', 'M', 'ivan.bezic@example.com', '0934567893', '2021-02-01', 'IT stručnjak', 'Aktivan', 50.00, 1);
+('Ivana', 'Horvat', '12345678901', 'Ž', 'ivana.horvat@example.com', '0912345678', '2022-03-15', 'Programer', 'Aktivan', 20.00, 1),
+('Marko', 'Jurić', '23456789012', 'M', 'marko.juric@example.com', '0923456789', '2021-05-10', 'Prodajni menadžer', 'Aktivan', 10.00, 2),
+('Ana', 'Marić', '34567890123', 'Ž', 'ana.maric@example.com', '0934567890', '2019-08-20', 'HR specijalist', 'Aktivan', 12.00, 3),
+('Petar', 'Kovač', '45678901234', 'M', 'petar.kovac@example.com', '0945678901', '2020-02-05', 'Marketing koordinator', 'Aktivan', 11.00, 4),
+('Lucija', 'Novak', '56789012345', 'Ž', 'lucija.novak@example.com', '0956789012', '2021-07-25', 'Računovođa', 'Aktivan', 15.00, 5),
+('Tomislav', 'Babić', '67890123456', 'M', 'tomislav.babic@example.com', '0967890123', '2018-11-12', 'Skladištar', 'Aktivan', 7.00, 6),
+('Marija', 'Kralj', '78901234567', 'Ž', 'marija.kralj@example.com', '0978901234', '2020-08-15', 'Asistent u ljudskim resursima', 'Aktivan', 12.00, 3),
+('Jakov', 'Savić', '89012345678', 'M', 'jakov.savic@example.com', '0989012345', '2021-01-30', 'Specijalist za digitalni marketing', 'Aktivan', 11.00, 4),
+('Jana', 'Lukić', '90123456789', 'Ž', 'jana.lukic@example.com', '0990123456', '2022-02-20', 'Administrator sustava', 'Aktivan', 20.00, 1),
+('Davor', 'Vuković', '12345098765', 'M', 'davor.vukovic@example.com', '0912345679', '2022-04-25', 'Prodajni asistent', 'Aktivan', 10.00, 2),
+('Martina', 'Petrović', '23456123456', 'Ž', 'martina.petrovic@example.com', '0923456780', '2020-10-10', 'Kreativni direktor', 'Aktivan', 11.00, 4),
+('Jure', 'Matić', '34567234567', 'M', 'jure.matic@example.com', '0934567891', '2019-06-12', 'Zamjenik direktora', 'Aktivan', 15.00, 5),
+('Nina', 'Zorić', '45678345678', 'Ž', 'nina.zoric@example.com', '0945678902', '2021-03-25', 'Pomoćnik za ljudske resurse', 'Aktivan', 12.00, 3),
+('Igor', 'Kovačić', '56789456789', 'M', 'igor.kovacic@example.com', '0956789013', '2020-06-15', 'Prodajni menadžer', 'Aktivan', 10.00, 2),
+('Tea', 'Horvat', '67890567890', 'Ž', 'tea.horvat@example.com', '0967890124', '2018-09-19', 'Interni auditor', 'Aktivan', 15.00, 5),
+('Filip', 'Jovanović', '78901678901', 'M', 'filip.jovanovic@example.com', '0978901235', '2021-12-01', 'Specijalist za SEO', 'Aktivan', 11.00, 4),
+('Maja', 'Petrić', '89012789012', 'Ž', 'maja.petric@example.com', '0989012346', '2022-06-05', 'Lektor', 'Aktivan', 11.00, 4),
+('Marin', 'Balić', '90123890123', 'M', 'marin.balic@example.com', '0990123457', '2022-01-10', 'Web dizajner', 'Aktivan', 20.00, 1),
+('Diana', 'Pavić', '12345987654', 'Ž', 'diana.pavic@example.com', '0912345680', '2019-03-15', 'Menadžer za ljudske resurse', 'Aktivan', 12.00, 3),
+('Petar', 'Ladić', '23457098765', 'M', 'petar.ladic@example.com', '0923456781', '2020-07-22', 'Koordinator za prodaju', 'Aktivan', 10.00, 2),
+('Nikolina', 'Zubić', '34568109876', 'Ž', 'nikolina.zubic@example.com', '0934567892', '2021-10-11', 'Menadžer za marketing', 'Aktivan', 11.00, 4),
+('Damir', 'Knežević', '45679210987', 'M', 'damir.knezevic@example.com', '0945678903', '2021-09-05', 'Skladištar', 'Aktivan', 7.00, 6),
+('Sanja', 'Kovačić', '56780321098', 'Ž', 'sanja.kovacic@example.com', '0956789014', '2021-11-10', 'Menadžer za IT podršku', 'Aktivan', 20.00, 1),
+('Viktor', 'Kraljević', '67891432109', 'M', 'viktor.kraljevic@example.com', '0967890125', '2020-05-20', 'Marketing asistent', 'Aktivan', 11.00, 4),
+('Anamarija', 'Tomić', '78902543210', 'Ž', 'anamarija.tomic@example.com', '0978901236', '2020-12-01', 'Prodajni asistent', 'Aktivan', 10.00, 2),
+('Luka', 'Rajić', '89013654321', 'M', 'luka.rajic@example.com', '0989012347', '2021-08-25', 'Računovođa', 'Aktivan', 15.00, 5),
+('Iva', 'Stojanović', '90124765432', 'Ž', 'iva.stojanovic@example.com', '0990123458', '2018-12-13', 'Programer', 'Aktivan', 20.00, 1),
+('Luka', 'Zorić', '12346776543', 'M', 'luka.zoric@example.com', '0912345670', '2020-05-30', 'SEO stručnjak', 'Aktivan', 11.00, 4),
+('Iva', 'Lucić', '23457887654', 'Ž', 'iva.lucic@example.com', '0923456782', '2019-07-25', 'Skladištar', 'Aktivan', 7.00, 6),
+('Ivan', 'Bezić', '34568998765', 'M', 'ivan.bezic@example.com', '0934567893', '2021-02-01', 'IT stručnjak', 'Aktivan', 20.00, 1);
+
 
 /*----------------------------------------------------------------------------------*/
+DROP USER IF EXISTS 'ivana.horvat'@'localhost';
+
+
 CREATE USER 'ivana.horvat'@'localhost' IDENTIFIED BY 'baze123';
 
 GRANT ALL PRIVILEGES ON bp_2_projekt.* TO 'ivana.horvat'@'localhost';
@@ -388,103 +392,60 @@ VALUES
 (15, '2025-01-03', '16:00:00', '23:59:59');
 
 
-INSERT INTO place (id_zaposlenik, godina_mjesec, radni_sati, prekovremeni_sati, bolovanje_dani, ukupna_placa)
+INSERT INTO place (id_zaposlenik, godina_mjesec, radni_sati, prekovremeni_sati, bolovanje_dani)
 VALUES
 -- Studeni 2024
-(1, '2024-11-01', 160, 10, 2, 2000.00),
-(2, '2024-11-01', 150, 5, 0, 1900.00),
-(3, '2024-11-01', 140, 12, 1, 2100.00),
-(4, '2024-11-01', 160, 8, 0, 2050.00),
-(5, '2024-11-01', 155, 15, 3, 2300.00),
-(6, '2024-11-01', 150, 5, 0, 1900.00),
-(7, '2024-11-01', 145, 7, 1, 2000.00),
-(8, '2024-11-01', 160, 10, 0, 2100.00),
-(9, '2024-11-01', 155, 20, 0, 2400.00),
-(10, '2024-11-01', 150, 12, 0, 2200.00),
-(11, '2024-11-01', 160, 10, 0, 2000.00),
-(12, '2024-11-01', 140, 8, 0, 1800.00),
-(13, '2024-11-01', 150, 5, 1, 1900.00),
-(14, '2024-11-01', 145, 12, 0, 2100.00),
-(15, '2024-11-01', 160, 10, 0, 2050.00),
-(16, '2024-11-01', 155, 7, 0, 2000.00),
-(17, '2024-11-01', 150, 5, 0, 1900.00),
-(18, '2024-11-01', 160, 15, 0, 2250.00),
-(19, '2024-11-01', 150, 8, 2, 2000.00),
-(20, '2024-11-01', 145, 5, 0, 1850.00),
-(21, '2024-11-01', 160, 10, 0, 2000.00),
-(22, '2024-11-01', 155, 8, 1, 2050.00),
-(23, '2024-11-01', 150, 7, 0, 1900.00),
-(24, '2024-11-01', 140, 15, 0, 2200.00),
-(25, '2024-11-01', 150, 12, 0, 2100.00),
-(26, '2024-11-01', 155, 10, 0, 2000.00),
-(27, '2024-11-01', 150, 5, 0, 1900.00),
-(28, '2024-11-01', 160, 8, 0, 1950.00),
-(29, '2024-11-01', 150, 7, 0, 1850.00),
-(30, '2024-11-01', 160, 10, 0, 2000.00),
+(1, '2024-11-01', 160, 10, 2),
+(2, '2024-11-01', 150, 5, 0),
+(3, '2024-11-01', 140, 12, 1),
+(4, '2024-11-01', 160, 8, 0),
+(5, '2024-11-01', 155, 15, 3),
+(6, '2024-11-01', 150, 5, 0),
+(7, '2024-11-01', 145, 7, 1),
+(8, '2024-11-01', 160, 10, 0),
+(9, '2024-11-01', 155, 20, 0),
+(10, '2024-11-01', 150, 12, 0),
+(11, '2024-11-01', 160, 10, 0),
+(12, '2024-11-01', 140, 8, 0),
+(13, '2024-11-01', 150, 5, 1),
+(14, '2024-11-01', 145, 12, 0),
+(15, '2024-11-01', 160, 10, 0),
+(16, '2024-11-01', 155, 7, 0),
+(17, '2024-11-01', 150, 5, 0),
+(18, '2024-11-01', 160, 15, 0),
+(19, '2024-11-01', 150, 8, 2),
+(20, '2024-11-01', 145, 5, 0),
+(21, '2024-11-01', 160, 10, 0),
+(22, '2024-11-01', 155, 8, 1),
+(23, '2024-11-01', 150, 7, 0),
+(24, '2024-11-01', 140, 15, 0),
+(25, '2024-11-01', 150, 12, 0),
+(26, '2024-11-01', 155, 10, 0),
+(27, '2024-11-01', 150, 5, 0),
+(28, '2024-11-01', 160, 8, 0),
+(29, '2024-11-01', 150, 7, 0),
+(30, '2024-11-01', 160, 10, 0),
 
 -- Prosinac 2024
-(1, '2024-12-01', 140, 5, 0, 1800.00),
-(2, '2024-12-01', 150, 8, 1, 1900.00),
-(3, '2024-12-01', 155, 10, 0, 2000.00),
-(4, '2024-12-01', 145, 15, 0, 2200.00),
-(5, '2024-12-01', 160, 12, 0, 2100.00),
-(6, '2024-12-01', 150, 8, 0, 2000.00),
-(7, '2024-12-01', 160, 7, 0, 1900.00),
-(8, '2024-12-01', 140, 10, 0, 2000.00),
-(9, '2024-12-01', 150, 20, 2, 2400.00),
-(10, '2024-12-01', 160, 15, 0, 2300.00),
-(11, '2024-12-01', 150, 8, 0, 2000.00),
-(12, '2024-12-01', 145, 7, 1, 1900.00),
-(13, '2024-12-01', 155, 10, 0, 2000.00),
-(14, '2024-12-01', 160, 12, 0, 2100.00),
-(15, '2024-12-01', 150, 15, 0, 2200.00),
-(16, '2024-12-01', 140, 8, 0, 1800.00),
-(17, '2024-12-01', 160, 5, 0, 1900.00),
-(18, '2024-12-01', 150, 10, 0, 2000.00),
-(19, '2024-12-01', 160, 8, 1, 1950.00),
-(20, '2024-12-01', 140, 5, 0, 1850.00),
-(21, '2024-12-01', 150, 8, 0, 1900.00),
-(22, '2024-12-01', 160, 12, 0, 2100.00),
-(23, '2024-12-01', 150, 7, 0, 1900.00),
-(24, '2024-12-01', 145, 10, 0, 2000.00),
-(25, '2024-12-01', 140, 8, 0, 1900.00),
-(26, '2024-12-01', 160, 12, 0, 2100.00),
-(27, '2024-12-01', 150, 5, 1, 1900.00),
-(28, '2024-12-01', 140, 8, 0, 1950.00),
-(29, '2024-12-01', 155, 7, 0, 2000.00),
-(30, '2024-12-01', 160, 10, 0, 2100.00),
-
--- Siječanj 2025
-(1, '2025-01-01', 155, 5, 0, 1900.00),
-(2, '2025-01-01', 150, 12, 1, 2000.00),
-(3, '2025-01-01', 140, 8, 0, 1900.00),
-(4, '2025-01-01', 160, 10, 0, 2000.00),
-(5, '2025-01-01', 155, 12, 0, 2100.00),
-(6, '2025-01-01', 160, 15, 0, 2300.00),
-(7, '2025-01-01', 150, 8, 0, 2000.00),
-(8, '2025-01-01', 140, 7, 1, 1800.00),
-(9, '2025-01-01', 160, 10, 0, 2000.00),
-(10, '2025-01-01', 155, 12, 0, 2100.00),
-(11, '2025-01-01', 160, 15, 0, 2200.00),
-(12, '2025-01-01', 140, 8, 0, 1900.00),
-(13, '2025-01-01', 150, 10, 1, 2000.00),
-(14, '2025-01-01', 160, 12, 0, 2100.00),
-(15, '2025-01-01', 155, 15, 0, 2200.00),
-(16, '2025-01-01', 140, 8, 0, 1800.00),
-(17, '2025-01-01', 160, 5, 0, 1900.00),
-(18, '2025-01-01', 150, 10, 0, 2000.00),
-(19, '2025-01-01', 160, 8, 1, 1950.00),
-(20, '2025-01-01', 140, 5, 0, 1850.00),
-(21, '2025-01-01', 150, 8, 0, 1900.00),
-(22, '2025-01-01', 160, 12, 0, 2100.00),
-(23, '2025-01-01', 150, 7, 0, 1900.00),
-(24, '2025-01-01', 145, 10, 0, 2000.00),
-(25, '2025-01-01', 140, 8, 0, 1900.00),
-(26, '2025-01-01', 160, 12, 0, 2100.00),
-(27, '2025-01-01', 150, 5, 1, 1900.00),
-(28, '2025-01-01', 140, 8, 0, 1950.00),
-(29, '2025-01-01', 155, 7, 0, 2000.00),
-(30, '2025-01-01', 160, 10, 0, 2100.00);
+(1, '2024-12-01', 140, 5, 0),
+(2, '2024-12-01', 150, 8, 1),
+(3, '2024-12-01', 155, 10, 0),
+(4, '2024-12-01', 145, 15, 0),
+(5, '2024-12-01', 160, 12, 0),
+(6, '2024-12-01', 150, 8, 0),
+(7, '2024-12-01', 160, 7, 0),
+(8, '2024-12-01', 140, 10, 0),
+(9, '2024-12-01', 150, 20, 2),
+(10, '2024-12-01', 160, 15, 0),
+(11, '2024-12-01', 150, 8, 0),
+(12, '2024-12-01', 145, 7, 1),
+(13, '2024-12-01', 155, 10, 0),
+(14, '2024-12-01', 160, 12, 0),
+(15, '2024-12-01', 150, 15, 0),
+(16, '2024-12-01', 140, 8, 0),
+(17, '2024-12-01', 160, 5, 0),
+(18, '2024-12-01', 150, 10, 0),
+(19, '2024-12-01', 160, 8, 0);
 
 
 INSERT INTO godisnji_odmori (id_zaposlenik, pocetni_datum, zavrsni_datum, status, datum_podnosenja, godina, broj_dana) VALUES
@@ -617,7 +578,7 @@ INNER JOIN odjel ON zaposlenik.id_odjel=odjel.id
 ORDER BY zaposlenik_id ASC;
 
 Select * FROM zaposlenici_odjeli;
-
+/*----------------------------------------------------------------------------------*/
 -- 2. View aktivni projekti
 DROP VIEW IF EXISTS aktivni_projekti;
 
@@ -627,16 +588,16 @@ FROM projekti
 WHERE status = 'aktivni';
 
 SELECT * FROM aktivni_projekti;
-
+/*----------------------------------------------------------------------------------*/
 -- 3. View
-DROP VIEW IF EXISTS
+DROP VIEW IF EXISTS aktivni_zaposlenici;
 CREATE VIEW aktivni_zaposlenici AS
 SELECT z.id AS zaposlenik_id, CONCAT(z.ime, ' ', z.prezime) AS puno_ime, z.email, z.broj_telefona, o.naziv AS odjel, z.pozicija, z.satnica 
 	FROM zaposlenik z JOIN odjel o ON z.id_odjel = o.id 
 	WHERE z.status_zaposlenika = 'aktivan';
 
 SELECT * FROM aktivni_zaposlenici;
-
+/*----------------------------------------------------------------------------------*/
 -- 4. View
 DROP VIEW IF EXISTS mjesecne_place;
 CREATE VIEW mjesecne_place AS 
@@ -645,6 +606,7 @@ SELECT p.id AS placa_id, CONCAT(z.ime, ' ', z.prezime) AS zaposlenik, p.godina_m
 	JOIN zaposlenik z ON p.id_zaposlenik = z.id;
 
 SELECT * FROM mjesecne_place;
+/*----------------------------------------------------------------------------------*/
 -- 5. View
 DROP VIEW IF EXISTS troskovi_sluzbenih_putovanja;
 CREATE VIEW troskovi_sluzbenih_putovanja AS 
@@ -687,7 +649,7 @@ DELIMITER ;
     'Marko', 'Horvat', '12345678923', 'M', 'marko.horvat@email.com', '0911234567', '2025-01-10', 'Developer', 'aktivan', 50.00, 1
 );*/
 -- Select * from zaposlenik;
-
+/*----------------------------------------------------------------------------------*/
 -- PROCEDURA BR.2 BRISI ZAPOSLENIKA
 DROP PROCEDURE IF EXISTS brisi_zaposlenika;
 DELIMITER //
@@ -698,10 +660,7 @@ BEGIN
 END//
 DELIMITER ;
 
--- CALL brisi_zaposlenika(31);
-
--- Select * from zaposlenik;
-
+/*----------------------------------------------------------------------------------*/
 
 -- PROCEDURA BR.3 DODAVANJE PROJEKTA
 DROP PROCEDURE IF EXISTS dodaj_projekt;
@@ -719,7 +678,7 @@ BEGIN
 	VALUES(p_naziv, p_opis, p_datum_pocetka, p_datum_zavrsetka, p_status, p_odgovorna_osoba);
 END //
 DELIMITER ;
-
+/*----------------------------------------------------------------------------------*/
 -- PROCEDURA BR.4 UKUPAN IZRACUM TROSKOVA PUTA
 DROP PROCEDURE IF EXISTS ukupno_troskovi_sluzbeni_put;
 DELIMITER //
@@ -731,7 +690,7 @@ BEGIN
     FROM sluzbena_putovanja;
 END //
 DELIMITER ;
-
+/*----------------------------------------------------------------------------------*/
 -- PROCEDURA BR.5 dodavanje godišnjeg odmora za zaposlenika
 DROP PROCEDURE IF EXISTS dodaj_godisnji;
 DELIMITER //
@@ -742,6 +701,7 @@ id_zaposlenik, pocetni_datum, zavrsni_datum, broj_dana)
 VALUES(p_id_zaposlenik, p_pocetni_datum, p_zavrsni_datum, YEAR(p_pocetni_datum), p_broj_dana);
 END //
 DELIMITER ;
+/*----------------------------------------------------------------------------------*/
 -- PROCEDURA BR.6 prikaz svih smjena zaposlenika za određeni dan
 DROP PROCEDURE IF EXISTS prikaz_smjene_zaposlenika;
 DELIMITER //
@@ -754,8 +714,7 @@ BEGIN
     WHERE rr.datum = p_datum;
 END //
 DELIMITER ;
-CALL prikaz_smjene_zaposlenika();
-select * from smjene;
+/*----------------------------------------------------------------------------------*/
 -- PROCEDURA BR.7 DODAVANJE BILJESKE ZA ZAPOSLENIKA
 DROP PROCEDURE IF EXISTS dodavanje_biljeske_za_zaposlenika;
 DELIMITER //
@@ -771,6 +730,7 @@ INSERT INTO napomene (id_zaposlenik, datum, napomena, tip)
 END //
 
 DELIMITER ;
+/*----------------------------------------------------------------------------------*/
 -- PROCEDURA BR.8 Odobri godisnji
 DROP PROCEDURE IF EXISTS odobrigodisnji;
 
@@ -829,10 +789,7 @@ BEGIN
     CLOSE izlazni_cur;
 END //
 DELIMITER ;
-
-SELECT * FROM godisnji_odmori;
-
-CALL odobrigodisnji();
+/*----------------------------------------------------------------------------------*/
 -- PROCEDURA BR.9 Dodaj Zaposlenike u smjene
 DROP PROCEDURE IF EXISTS dodajZaposlenikeUSmjene;
 
@@ -880,17 +837,11 @@ BEGIN
     CLOSE smjena_cur;
 END //
 DELIMITER ;
-
-
-SELECT * FROM smjene;
-SELECT * FROM raspored_rada;
-SELECT * FROM preferencije_smjena;
-
-
+/*----------------------------------------------------------------------------------*/
 -- PROCEDURA BR.10 Prerasporedi zaposlenike godisnji
 
 DROP PROCEDURE IF EXISTS prerasporediZaposlenikeGodisnji;
-DELIMITER $$
+DELIMITER //
 -- maxNaGodisnjem -> najviše dozvoljeno zaposlenika firme na godisnjem
 -- maxShift-> koliko se najviše dana smije pomaknuti godišnji
 CREATE PROCEDURE prerasporediZaposlenikeGodisnji(IN maxNaGodisnjem INT, IN maxShift INT)  
@@ -990,18 +941,14 @@ BEGIN
     END LOOP main_loop;
 
     CLOSE c;
-END$$
+END//
 
 DELIMITER ;
-
-CALL prerasporediZaposlenikeGodisnji(3, 60);
-
-SELECT * FROM godisnji_odmori;
-
+/*----------------------------------------------------------------------------------*/
 -- PROCEDURA BR.11 Korisnik prihvaca godisnji
 
 DROP PROCEDURE IF EXISTS korisnikPrihvacaGodisnji;
-DELIMITER $$
+DELIMITER //
 CREATE PROCEDURE korisnikPrihvacaGodisnji(IN status_prihvacanja BOOL, IN id_godisnji INT)
 BEGIN
 	IF status_prihvacanja THEN
@@ -1009,13 +956,43 @@ BEGIN
 	ELSE
 		UPDATE godisnji_odmori SET status = 'odbijen' WHERE id = id_godisnji AND status = 'čeka prihvaćanje';
 	END IF;
-END$$
+END//
 DELIMITER ;
 
--- TESTIRANJE 
-CALL korisnikPrihvacaGodisnji(TRUE, 1);
-CALL korisnikPrihvacaGodisnji(FALSE, 2);
-CALL korisnikPrihvacaGodisnji(TRUE, 3);
-CALL korisnikPrihvacaGodisnji(FALSE, 4);
+/*----------------------------------------------------------------------------------*/
+-- FUNKCIJE
 
-SELECT * FROM godisnji_odmori;
+DROP FUNCTION IF EXISTS mjesecnaPlaca;
+
+DELIMITER //
+CREATE FUNCTION mjesecnaPlaca(zaposlenik_id INT) RETURNS DECIMAL(10,2)
+DETERMINISTIC
+BEGIN
+    DECLARE std_placa DECIMAL(10,2);
+    DECLARE broj_sati DECIMAL(10,2);
+    DECLARE prekovremeni DECIMAL(10,2);
+    DECLARE bolovanje INT;
+    DECLARE mjesecna DECIMAL(10,2);
+
+    SELECT satnica INTO std_placa FROM zaposlenik WHERE id = zaposlenik_id;
+
+    SELECT SUM(TIMESTAMPDIFF(HOUR, vrijeme_dolaska, vrijeme_odlaska)) INTO broj_sati 
+    FROM evidencija_rada WHERE id_zaposlenik = zaposlenik_id;
+
+    SELECT SUM(GREATEST(0, TIMESTAMPDIFF(HOUR, vrijeme_dolaska, vrijeme_odlaska) - 7)) INTO prekovremeni
+    FROM evidencija_rada WHERE id_zaposlenik = zaposlenik_id;
+
+    SELECT COUNT(*) INTO bolovanje 
+    FROM bolovanje WHERE id_zaposlenik = zaposlenik_id AND MONTH(pocetni_datum) = MONTH(CURDATE());
+
+    SET mjesecna = (broj_sati * std_placa) + (prekovremeni * std_placa * 2) - (bolovanje * 8 * std_placa);
+
+    INSERT INTO place (id_zaposlenik, godina_mjesec, radni_sati, prekovremeni_sati, bolovanje_dani, ukupna_placa)
+    VALUES (zaposlenik_id, DATE(CURDATE()), broj_sati, prekovremeni, bolovanje, mjesecna)
+    ON DUPLICATE KEY UPDATE ukupna_placa = mjesecna;
+
+    RETURN mjesecna;
+END //
+DELIMITER ;
+
+SELECT mjesecnaPlaca(1);

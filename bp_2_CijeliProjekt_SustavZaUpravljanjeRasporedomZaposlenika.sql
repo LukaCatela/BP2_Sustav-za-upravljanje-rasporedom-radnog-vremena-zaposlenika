@@ -200,7 +200,31 @@ CREATE TABLE napomene (
 );
 /*----------------------------------------------------------------------------------*/
 -- Okidaci
+DELIMITER //
+CREATE TRIGGER azuriraj_status_prekovremeni
+AFTER UPDATE ON zahtjev_prekovremeni
+FOR EACH ROW
+BEGIN
+    IF NEW.status_pre = 'odobreno' AND OLD.status_pre != 'odobreno' THEN
+        UPDATE zahtjev_prekovremeni
+        SET sati = NEW.sati
+        WHERE id = NEW.id;
+    END IF;
+END //
+DELIMITER ;
 
+-- Automatsko postavljanje statusa projekta na "završeni"
+DELIMITER //
+CREATE TRIGGER trg_projekt_status_zavrsen
+BEFORE UPDATE ON projekti
+FOR EACH ROW
+BEGIN
+	IF NEW.datum_zavrsetka IS NOT NULL AND NEW.status != 'završeni' THEN
+		SET NEW.status = 'završeni';
+	END IF;
+END //
+
+DELIMITER ;
 
 /*----------------------------------------------------------------------------------*/
 -- Ubacivanje podataka

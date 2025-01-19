@@ -89,7 +89,7 @@ CREATE TABLE evidencija_rada(
 CREATE TABLE place(
     id INT PRIMARY KEY AUTO_INCREMENT,
     id_zaposlenik INT NOT NULL,
-    godina_mjesec DATE NOT NULL,
+    godina_mjesec CHAR(7) NOT NULL,
     radni_sati INT NOT NULL CHECK(radni_sati >= 0),
     prekovremeni_sati INT NOT NULL CHECK(prekovremeni_sati >= 0),
     bolovanje_dani INT NOT NULL DEFAULT 0,
@@ -102,7 +102,7 @@ CREATE TABLE godisnji_odmori (
     id_zaposlenik INT NOT NULL,
     pocetni_datum DATE NOT NULL,
     zavrsni_datum DATE NOT NULL,
-    status ENUM('odobren', 'odbijen', 'na čekanju', 'iskorišten') DEFAULT 'na čekanju', 
+    status_god ENUM('odobren', 'odbijen', 'na čekanju', 'iskorišten') DEFAULT 'na čekanju', 
     datum_podnosenja DATE, 
     godina INT NOT NULL, 
     broj_dana INT NOT NULL, 
@@ -154,7 +154,7 @@ CREATE TABLE dopust (
     pocetni_datum DATE NOT NULL,
     zavrsni_datum DATE NOT NULL,
     tip_dopusta ENUM('plaćeni', 'neplaćeni') NOT NULL,
-    status ENUM('odobren', 'odbijen', 'na čekanju') DEFAULT 'na čekanju',
+    status_dopust ENUM('odobren', 'odbijen', 'na čekanju') DEFAULT 'na čekanju',
     razlog VARCHAR(500), 
     datum_podnosenja DATE NOT NULL, 
     FOREIGN KEY (id_zaposlenik) REFERENCES zaposlenik(id) ON DELETE CASCADE,
@@ -168,7 +168,7 @@ CREATE TABLE projekti (
     opis TEXT,
     datum_pocetka DATE NOT NULL,
     datum_zavrsetka DATE,
-    status ENUM('aktivni', 'završeni', 'odgođeni') DEFAULT 'aktivni',
+    status_projekta ENUM('aktivni', 'završeni', 'odgođeni') DEFAULT 'aktivni',
     odgovorna_osoba INT, 
     FOREIGN KEY (odgovorna_osoba) REFERENCES zaposlenik(id) ON DELETE CASCADE,
     CONSTRAINT ck_datum_projekt CHECK(datum_pocetka <= datum_zavrsetka)
@@ -183,7 +183,7 @@ CREATE TABLE zadaci (
     opis TEXT,
     datum_pocetka DATE NOT NULL,
     datum_zavrsetka DATE,
-    status ENUM('u tijeku', 'završeni', 'odgođeni') DEFAULT 'u tijeku',
+    status_zadaci ENUM('u tijeku', 'završeni', 'odgođeni') DEFAULT 'u tijeku',
     prioritet ENUM('nizak', 'srednji', 'visok') DEFAULT 'srednji', 
     FOREIGN KEY (id_projekt) REFERENCES projekti(id),
     FOREIGN KEY (id_zaposlenik) REFERENCES zaposlenik(id) ON DELETE CASCADE,
@@ -200,6 +200,8 @@ CREATE TABLE napomene (
 );
 /*----------------------------------------------------------------------------------*/
 -- Okidaci
+DROP TRIGGER IF EXISTS azuriraj_status_prekovremeni;
+
 DELIMITER //
 CREATE TRIGGER azuriraj_status_prekovremeni
 AFTER UPDATE ON zahtjev_prekovremeni
@@ -213,14 +215,30 @@ BEGIN
 END //
 DELIMITER ;
 
+-- Azuriranje statusa projekta ako je unesem zavrsni datum --
+DROP TRIGGER IF EXISTS azuriranje_statusa_projekta;
+
+DELIMITER //
+CREATE TRIGGER azuriranje_statusa_projekta
+BEFORE UPDATE ON projekti
+FOR EACH ROW
+BEGIN
+  IF NEW.datum_zavrsetka IS NOT NULL AND NEW.status_projekta != 'završeni' THEN
+    SET NEW.status_projekta = 'završeni';
+  END IF;
+END//
+
+DELIMITER ;
 -- Automatsko postavljanje statusa projekta na "završeni"
+DROP TRIGGER IF EXISTS trg_projekt_status_zavrsen;
+
 DELIMITER //
 CREATE TRIGGER trg_projekt_status_zavrsen
 BEFORE UPDATE ON projekti
 FOR EACH ROW
 BEGIN
-	IF NEW.datum_zavrsetka IS NOT NULL AND NEW.status != 'završeni' THEN
-		SET NEW.status = 'završeni';
+	IF NEW.datum_zavrsetka IS NOT NULL AND NEW.status_projekta != 'završeni' THEN
+		SET NEW.status_projekta = 'završeni';
 	END IF;
 END //
 
@@ -306,7 +324,9 @@ VALUES
 (17, '2024-09-01', '2024-09-05', TRUE),
 (18, '2024-09-10', '2024-09-15', FALSE),
 (19, '2024-10-01', '2024-10-07', TRUE),
-(20, '2024-11-01', '2024-11-06', FALSE);
+(20, '2024-11-01', '2024-11-06', FALSE),
+(1, '2025-01-02', '2025-01-09', TRUE);
+
 
 
 INSERT INTO smjene (id_vrsta_smjene, min_broj_zaposlenika, id_odjel) VALUES
@@ -365,9 +385,51 @@ VALUES
 (30, 2, '2024-12-03'), (30, 1, '2024-12-04'), (30, 2, '2024-12-05'), (30, 1, '2024-12-06'),
 (30, 2, '2024-12-09'), (30, 1, '2024-12-10'), (30, 2, '2024-12-11'), (30, 1, '2024-12-12'), (30, 2, '2024-12-13'),
 (30, 1, '2024-12-16'), (30, 2, '2024-12-17'), (30, 1, '2024-12-18'), (30, 2, '2024-12-19'), (30, 1, '2024-12-20'),
-(30, 2, '2024-12-23'), (30, 1, '2024-12-24'), (30, 2, '2024-12-27'), (30, 1, '2024-12-30'), (30, 2, '2024-12-31');
+(30, 2, '2024-12-23'), (30, 1, '2024-12-24'), (30, 2, '2024-12-27'), (30, 1, '2024-12-30'), (30, 2, '2024-12-31'),
 
-select * from raspored_rada;
+
+-- Sijecanj 2025
+
+(1, 1, '2025-01-02'), (1, 2, '2025-01-03'), (1, 1, '2025-01-04'), (1, 2, '2025-01-05'), (1, 1, '2025-01-06'),
+(1, 2, '2025-01-09'), (1, 1, '2025-01-10'), (1, 2, '2025-01-11'), (1, 1, '2025-01-12'), (1, 2, '2025-01-13'),
+(1, 1, '2025-01-16'), (1, 2, '2025-01-17'), (1, 1, '2025-01-18'), (1, 2, '2025-01-19'), (1, 1, '2025-01-20'),
+(1, 2, '2025-01-23'), (1, 1, '2025-01-24'), (1, 2, '2025-01-27'), (1, 1, '2025-01-30'), (1, 2, '2025-01-31'),
+
+(2, 1, '2025-01-02'), (2, 2, '2025-01-03'), (2, 1, '2025-01-04'), (2, 2, '2025-01-05'), (2, 1, '2025-01-06'),
+(2, 2, '2025-01-09'), (2, 1, '2025-01-10'), (2, 2, '2025-01-11'), (2, 1, '2025-01-12'), (2, 2, '2025-01-13'),
+(2, 1, '2025-01-16'), (2, 2, '2025-01-17'), (2, 1, '2025-01-18'), (2, 2, '2025-01-19'), (2, 1, '2025-01-20'),
+(2, 2, '2025-01-23'), (2, 1, '2025-01-24'), (2, 2, '2025-01-27'), (2, 1, '2025-01-30'), (2, 2, '2025-01-31'),
+
+(3, 1, '2025-01-02'), (3, 2, '2025-01-03'), (3, 1, '2025-01-04'), (3, 2, '2025-01-05'), (3, 1, '2025-01-06'),
+(3, 2, '2025-01-09'), (3, 1, '2025-01-10'), (3, 2, '2025-01-11'), (3, 1, '2025-01-12'), (3, 2, '2025-01-13'),
+(3, 1, '2025-01-16'), (3, 2, '2025-01-17'), (3, 1, '2025-01-18'), (3, 2, '2025-01-19'), (3, 1, '2025-01-20'),
+(3, 2, '2025-01-23'), (3, 1, '2025-01-24'), (3, 2, '2025-01-27'), (3, 1, '2025-01-30'), (3, 2, '2025-01-31'),
+
+(4, 1, '2025-01-02'), (4, 2, '2025-01-03'), (4, 1, '2025-01-04'), (4, 2, '2025-01-05'), (4, 1, '2025-01-06'),
+(4, 2, '2025-01-09'), (4, 1, '2025-01-10'), (4, 2, '2025-01-11'), (4, 1, '2025-01-12'), (4, 2, '2025-01-13'),
+(4, 1, '2025-01-16'), (4, 2, '2025-01-17'), (4, 1, '2025-01-18'), (4, 2, '2025-01-19'), (4, 1, '2025-01-20'),
+(4, 2, '2025-01-23'), (4, 1, '2025-01-24'), (4, 2, '2025-01-27'), (4, 1, '2025-01-30'), (4, 2, '2025-01-31'),
+
+(5, 1, '2025-01-02'), (5, 2, '2025-01-03'), (5, 1, '2025-01-04'), (5, 2, '2025-01-05'), (5, 1, '2025-01-06'),
+(5, 2, '2025-01-09'), (5, 1, '2025-01-10'), (5, 2, '2025-01-11'), (5, 1, '2025-01-12'), (5, 2, '2025-01-13'),
+(5, 1, '2025-01-16'), (5, 2, '2025-01-17'), (5, 1, '2025-01-18'), (5, 2, '2025-01-19'), (5, 1, '2025-01-20'),
+(5, 2, '2025-01-23'), (5, 1, '2025-01-24'), (5, 2, '2025-01-27'), (5, 1, '2025-01-30'), (5, 2, '2025-01-31'),
+
+(6, 1, '2025-01-02'), (6, 2, '2025-01-03'), (6, 1, '2025-01-04'), (6, 2, '2025-01-05'), (6, 1, '2025-01-06'),
+(6, 2, '2025-01-09'), (6, 1, '2025-01-10'), (6, 2, '2025-01-11'), (6, 1, '2025-01-12'), (6, 2, '2025-01-13'),
+(6, 1, '2025-01-16'), (6, 2, '2025-01-17'), (6, 1, '2025-01-18'), (6, 2, '2025-01-19'), (6, 1, '2025-01-20'),
+(6, 2, '2025-01-23'), (6, 1, '2025-01-24'), (6, 2, '2025-01-27'), (6, 1, '2025-01-30'), (6, 2, '2025-01-31'),
+
+(7, 1, '2025-01-02'), (7, 2, '2025-01-03'), (7, 1, '2025-01-04'), (7, 2, '2025-01-05'), (7, 1, '2025-01-06'),
+(7, 2, '2025-01-09'), (7, 1, '2025-01-10'), (7, 2, '2025-01-11'), (7, 1, '2025-01-12'), (7, 2, '2025-01-13'),
+(7, 1, '2025-01-16'), (7, 2, '2025-01-17'), (7, 1, '2025-01-18'), (7, 2, '2025-01-19'), (7, 1, '2025-01-20'),
+(7, 2, '2025-01-23'), (7, 1, '2025-01-24'), (7, 2, '2025-01-27'), (7, 1, '2025-01-30'), (7, 2, '2025-01-31'),
+
+(30, 2, '2025-01-03'), (30, 1, '2025-01-04'), (30, 2, '2025-01-05'), (30, 1, '2025-01-06'),
+(30, 2, '2025-01-09'), (30, 1, '2025-01-10'), (30, 2, '2025-01-11'), (30, 1, '2025-01-12'), (30, 2, '2025-01-13'),
+(30, 1, '2025-01-16'), (30, 2, '2025-01-17'), (30, 1, '2025-01-18'), (30, 2, '2025-01-19'), (30, 1, '2025-01-20'),
+(30, 2, '2025-01-23'), (30, 1, '2025-01-24'), (30, 2, '2025-01-27'), (30, 1, '2025-01-30'), (30, 2, '2025-01-31');
+
 
 INSERT INTO evidencija_rada (id_zaposlenik, datum, vrijeme_dolaska, vrijeme_odlaska)
 VALUES
@@ -432,66 +494,177 @@ VALUES
 (12, '2025-01-03', '08:00:00', '16:00:00'),
 (13, '2025-01-03', '16:00:00', '23:59:59'), 
 (14, '2025-01-03', '08:00:00', '16:00:00'),
-(15, '2025-01-03', '16:00:00', '23:59:59');
+(15, '2025-01-03', '16:00:00', '23:59:59'),
+(1, '2025-01-02', '07:00:00', '15:00:00'), 
+(1, '2025-01-03', '14:00:00', '22:00:00'), 
+(1, '2025-01-04', '07:00:00', '15:00:00'), 
+(1, '2025-01-05', '14:00:00', '22:00:00'), 
+(1, '2025-01-06', '07:00:00', '15:00:00'), 
+(1, '2025-01-09', '14:00:00', '22:00:00'), 
+(1, '2025-01-10', '07:00:00', '15:00:00'), 
+(1, '2025-01-11', '14:00:00', '22:00:00'), 
+(1, '2025-01-12', '07:00:00', '15:00:00'), 
+(1, '2025-01-13', '14:00:00', '22:00:00'), 
+(1, '2025-01-16', '07:00:00', '15:00:00'), 
+(1, '2025-01-17', '14:00:00', '22:00:00'), 
+(1, '2025-01-18', '07:00:00', '15:00:00'), 
+(1, '2025-01-19', '14:00:00', '22:00:00'), 
+(1, '2025-01-20', '07:00:00', '15:00:00'), 
+(1, '2025-01-23', '14:00:00', '22:00:00'), 
+(1, '2025-01-24', '07:00:00', '15:00:00'), 
+(1, '2025-01-27', '14:00:00', '22:00:00'), 
+(1, '2025-01-30', '07:00:00', '15:00:00'), 
+(1, '2025-01-31', '14:00:00', '22:00:00'),
+
+(2, '2025-01-02', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(2, '2025-01-03', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(2, '2025-01-04', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(2, '2025-01-05', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(2, '2025-01-06', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(2, '2025-01-09', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(2, '2025-01-10', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(2, '2025-01-11', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(2, '2025-01-12', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(2, '2025-01-13', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(2, '2025-01-16', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(2, '2025-01-17', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(2, '2025-01-18', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(2, '2025-01-19', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(2, '2025-01-20', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(2, '2025-01-23', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(2, '2025-01-24', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(2, '2025-01-27', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(2, '2025-01-30', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(2, '2025-01-31', '14:00:00', '22:00:00'), -- Popodnevna smjena
+
+(3, '2025-01-02', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(3, '2025-01-03', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(3, '2025-01-04', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(3, '2025-01-05', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(3, '2025-01-06', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(3, '2025-01-09', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(3, '2025-01-10', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(3, '2025-01-11', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(3, '2025-01-12', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(3, '2025-01-13', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(3, '2025-01-16', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(3, '2025-01-17', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(3, '2025-01-18', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(3, '2025-01-19', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(3, '2025-01-20', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(3, '2025-01-23', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(3, '2025-01-24', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(3, '2025-01-27', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(3, '2025-01-30', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(3, '2025-01-31', '14:00:00', '22:00:00'), -- Popodnevna smjena
+
+(4, '2025-01-02', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(4, '2025-01-03', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(4, '2025-01-04', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(4, '2025-01-05', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(4, '2025-01-06', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(4, '2025-01-09', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(4, '2025-01-10', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(4, '2025-01-11', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(4, '2025-01-12', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(4, '2025-01-13', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(4, '2025-01-16', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(4, '2025-01-17', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(4, '2025-01-18', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(4, '2025-01-19', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(4, '2025-01-20', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(4, '2025-01-23', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(4, '2025-01-24', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(4, '2025-01-27', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(4, '2025-01-30', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(4, '2025-01-31', '14:00:00', '22:00:00'), -- Popodnevna smjena
+
+(5, '2025-01-02', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(5, '2025-01-03', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(5, '2025-01-04', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(5, '2025-01-05', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(5, '2025-01-06', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(5, '2025-01-09', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(5, '2025-01-10', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(5, '2025-01-11', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(5, '2025-01-12', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(5, '2025-01-13', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(5, '2025-01-16', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(5, '2025-01-17', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(5, '2025-01-18', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(5, '2025-01-19', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(5, '2025-01-20', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(5, '2025-01-23', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(5, '2025-01-24', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(5, '2025-01-27', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(5, '2025-01-30', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(5, '2025-01-31', '14:00:00', '22:00:00'), -- Popodnevna smjena
+
+(6, '2025-01-02', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(6, '2025-01-03', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(6, '2025-01-04', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(6, '2025-01-05', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(6, '2025-01-06', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(6, '2025-01-09', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(6, '2025-01-10', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(6, '2025-01-11', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(6, '2025-01-12', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(6, '2025-01-13', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(6, '2025-01-16', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(6, '2025-01-17', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(6, '2025-01-18', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(6, '2025-01-19', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(6, '2025-01-20', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(6, '2025-01-23', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(6, '2025-01-24', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(6, '2025-01-27', '14:00:00', '22:00:00'), -- Popodnevna smjena
+(6, '2025-01-30', '07:00:00', '15:00:00'), -- Jutarnja smjena
+(6, '2025-01-31', '14:00:00', '22:00:00'), -- Popodnevna smjena
+
+(7, '2025-01-02', '07:00:00', '15:00:00'), 
+(7, '2025-01-03', '14:00:00', '22:00:00'), 
+(7, '2025-01-04', '07:00:00', '15:00:00'), 
+(7, '2025-01-05', '14:00:00', '22:00:00'), 
+(7, '2025-01-06', '07:00:00', '15:00:00'), 
+(7, '2025-01-09', '14:00:00', '22:00:00'),
+(7, '2025-01-10', '07:00:00', '15:00:00'), 
+(7, '2025-01-11', '14:00:00', '22:00:00'),
+(7, '2025-01-12', '07:00:00', '15:00:00'), 
+(7, '2025-01-13', '14:00:00', '22:00:00'), 
+(7, '2025-01-16', '07:00:00', '15:00:00'), 
+(7, '2025-01-17', '14:00:00', '22:00:00'), 
+(7, '2025-01-18', '07:00:00', '15:00:00'), 
+(7, '2025-01-19', '14:00:00', '22:00:00'), 
+(7, '2025-01-20', '07:00:00', '15:00:00'), 
+(7, '2025-01-23', '14:00:00', '22:00:00'), 
+(7, '2025-01-24', '07:00:00', '15:00:00'),
+(7, '2025-01-27', '14:00:00', '22:00:00'), 
+(7, '2025-01-30', '07:00:00', '15:00:00'), 
+(7, '2025-01-31', '14:00:00', '22:00:00'), 
+
+(30, '2025-01-03', '07:00:00', '15:00:00'),  
+(30, '2025-01-04', '14:00:00', '22:00:00'),  
+(30, '2025-01-05', '07:00:00', '15:00:00'),  
+(30, '2025-01-06', '14:00:00', '22:00:00'),  
+(30, '2025-01-09', '07:00:00', '15:00:00'),  
+(30, '2025-01-10', '14:00:00', '22:00:00'),  
+(30, '2025-01-11', '07:00:00', '15:00:00'),  
+(30, '2025-01-12', '14:00:00', '22:00:00'),  
+(30, '2025-01-13', '07:00:00', '15:00:00'),  
+(30, '2025-01-16', '14:00:00', '22:00:00'),  
+(30, '2025-01-17', '07:00:00', '15:00:00'),  
+(30, '2025-01-18', '14:00:00', '22:00:00'),  
+(30, '2025-01-19', '07:00:00', '15:00:00'),  
+(30, '2025-01-20', '14:00:00', '22:00:00'),  
+(30, '2025-01-23', '07:00:00', '15:00:00'),  
+(30, '2025-01-24', '14:00:00', '22:00:00'),
+(30, '2025-01-27', '07:00:00', '15:00:00'),  
+(30, '2025-01-30', '14:00:00', '22:00:00'),
+(30, '2025-01-31', '07:00:00', '15:00:00');  
 
 
-INSERT INTO place (id_zaposlenik, godina_mjesec, radni_sati, prekovremeni_sati, bolovanje_dani)
-VALUES
--- Studeni 2024
-(1, '2024-11-01', 160, 10, 2),
-(2, '2024-11-01', 150, 5, 0),
-(3, '2024-11-01', 140, 12, 1),
-(4, '2024-11-01', 160, 8, 0),
-(5, '2024-11-01', 155, 15, 3),
-(6, '2024-11-01', 150, 5, 0),
-(7, '2024-11-01', 145, 7, 1),
-(8, '2024-11-01', 160, 10, 0),
-(9, '2024-11-01', 155, 20, 0),
-(10, '2024-11-01', 150, 12, 0),
-(11, '2024-11-01', 160, 10, 0),
-(12, '2024-11-01', 140, 8, 0),
-(13, '2024-11-01', 150, 5, 1),
-(14, '2024-11-01', 145, 12, 0),
-(15, '2024-11-01', 160, 10, 0),
-(16, '2024-11-01', 155, 7, 0),
-(17, '2024-11-01', 150, 5, 0),
-(18, '2024-11-01', 160, 15, 0),
-(19, '2024-11-01', 150, 8, 2),
-(20, '2024-11-01', 145, 5, 0),
-(21, '2024-11-01', 160, 10, 0),
-(22, '2024-11-01', 155, 8, 1),
-(23, '2024-11-01', 150, 7, 0),
-(24, '2024-11-01', 140, 15, 0),
-(25, '2024-11-01', 150, 12, 0),
-(26, '2024-11-01', 155, 10, 0),
-(27, '2024-11-01', 150, 5, 0),
-(28, '2024-11-01', 160, 8, 0),
-(29, '2024-11-01', 150, 7, 0),
-(30, '2024-11-01', 160, 10, 0),
 
--- Prosinac 2024
-(1, '2024-12-01', 140, 5, 0),
-(2, '2024-12-01', 150, 8, 1),
-(3, '2024-12-01', 155, 10, 0),
-(4, '2024-12-01', 145, 15, 0),
-(5, '2024-12-01', 160, 12, 0),
-(6, '2024-12-01', 150, 8, 0),
-(7, '2024-12-01', 160, 7, 0),
-(8, '2024-12-01', 140, 10, 0),
-(9, '2024-12-01', 150, 20, 2),
-(10, '2024-12-01', 160, 15, 0),
-(11, '2024-12-01', 150, 8, 0),
-(12, '2024-12-01', 145, 7, 1),
-(13, '2024-12-01', 155, 10, 0),
-(14, '2024-12-01', 160, 12, 0),
-(15, '2024-12-01', 150, 15, 0),
-(16, '2024-12-01', 140, 8, 0),
-(17, '2024-12-01', 160, 5, 0),
-(18, '2024-12-01', 150, 10, 0),
-(19, '2024-12-01', 160, 8, 0);
-
-
-INSERT INTO godisnji_odmori (id_zaposlenik, pocetni_datum, zavrsni_datum, status, datum_podnosenja, godina, broj_dana) VALUES
+INSERT INTO godisnji_odmori (id_zaposlenik, pocetni_datum, zavrsni_datum, status_god, datum_podnosenja, godina, broj_dana) VALUES
 (1, '2024-06-01', '2024-06-10', 'odobren', '2024-05-15', 2024, 10),
 (2, '2024-07-05', '2024-07-10', 'na čekanju', '2024-06-15', 2024, 6),
 (3, '2024-08-01', '2024-08-05', 'odobren', '2024-07-10', 2024, 5),
@@ -529,7 +702,12 @@ VALUES
 (27, '2024-12-27', 2, 'Prezentacija upravi', 'na čekanju'),
 (28, '2024-12-28', 3, 'Razvoj marketing plana', 'odobren'),
 (29, '2024-12-29', 4, 'Priprema godišnjeg izvješća', 'na čekanju'),
-(30, '2024-12-30', 5, 'Unapređenje sustava', 'odobren');
+(30, '2024-12-30', 5, 'Unapređenje sustava', 'odobren'),
+(1, '2025-01-02', 4, 'Tehnička podrška', 'odobren'),
+(3, '2025-01-02', 2, 'Razvoj softverskog modula', 'odobren'),
+(4, '2025-01-02', 3, 'Prezentacija upravi', 'na čekanju'),
+(1, '2025-01-05', 1, 'Migracija podataka', 'odobren');
+
 
 INSERT INTO preferencije_smjena (id_zaposlenik, id_vrsta_smjene, datum, prioritet)
 VALUES
@@ -573,7 +751,7 @@ INSERT INTO sluzbena_putovanja (id_zaposlenik, pocetni_datum, zavrsni_datum, svr
 (4, '2024-09-20', '2024-09-22', 'Posjet klijentima', 'Rijeka', 180.00),
 (5, '2024-10-25', '2024-10-27', 'Konferencija', 'Zadar', 220.00);
 
-INSERT INTO dopust (id_zaposlenik, pocetni_datum, zavrsni_datum, tip_dopusta, status, razlog, datum_podnosenja) VALUES
+INSERT INTO dopust (id_zaposlenik, pocetni_datum, zavrsni_datum, tip_dopusta, status_dopust, razlog, datum_podnosenja) VALUES
 (1, '2024-07-01', '2024-07-10', 'plaćeni', 'odobren', 'Ljetni odmor', '2024-06-01'),
 (2, '2024-08-15', '2024-08-20', 'neplaćeni', 'na čekanju', 'Osobni razlog', '2024-07-15'),
 (3, '2024-09-01', '2024-09-05', 'plaćeni', 'odobren', 'Obiteljske obveze', '2024-08-05'),
@@ -588,7 +766,7 @@ INSERT INTO napomene (id_zaposlenik, datum, napomena, tip) VALUES
 (4, '2024-11-04 12:00:00', 'Neispunjenje rokova za zadatak', 'negativna'),
 (5, '2024-11-05 14:00:00', 'Redovito izvršavanje obveza', 'pozitivna');
 
-INSERT INTO projekti (naziv, opis, datum_pocetka, datum_zavrsetka, status, odgovorna_osoba)
+INSERT INTO projekti (naziv, opis, datum_pocetka, datum_zavrsetka, status_projekta, odgovorna_osoba)
 VALUES
 ('Projekt Alfa', 'Razvoj novog softverskog sustava.', '2023-01-01', '2023-06-30', 'završeni', 1),
 ('Projekt Beta', 'Modernizacija postojećeg sustava.', '2023-05-01', '2024-01-15', 'aktivni', 2),
@@ -628,13 +806,58 @@ WHERE godina_mjesec = '2025-01-01' AND prekovremeni_sati > 15;
 -- Projekti s rokovima koji ističu u sljedećih 7 dana
 SELECT naziv, opis, datum_zavrsetka 
 FROM projekti 
-WHERE status = 'aktivni' AND datum_zavrsetka BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY);
+WHERE status_projekta = 'aktivni' AND datum_zavrsetka BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY);
 
 -- Lista prekovremenih zahtjeva koji su odbijeni s razlozima
 SELECT z.id AS zaposlenik_id, CONCAT(ime, ' ', prezime) AS puno_ime, datum_prekovremeni, sati, razlog 
 FROM zaposlenik AS z 
 JOIN zahtjev_prekovremeni AS zp ON z.id = zp.id_zaposlenik 
 WHERE zp.status_pre = 'odbijen';
+
+-- Ukupna plaća svih zaposlenika u određenom odjelu za zadani mjesec
+SELECT o.naziv AS odjel, SUM(p.ukupna_placa) AS ukupna_placa_odjela
+FROM zaposlenik z
+JOIN odjel o ON z.id_odjel = o.id
+JOIN place p ON z.id = p.id_zaposlenik
+WHERE o.id = 1 AND godina_mjesec = '2025-01'
+GROUP BY o.naziv;
+
+-- Zaposlenici koji trenutno imaju bolovanje
+SELECT CONCAT(z.ime, ' ', z.prezime) AS puno_ime, b.pocetni_datum, b.krajnji_datum
+FROM zaposlenik z
+JOIN bolovanje b ON z.id = b.id_zaposlenik
+WHERE CURDATE() BETWEEN b.pocetni_datum AND b.krajnji_datum;
+
+-- Ukupan broj sati rada po zaposleniku za zadani mjesec
+SELECT CONCAT(z.ime, ' ', z.prezime) AS puno_ime, SUM(TIMESTAMPDIFF(HOUR, e.vrijeme_dolaska, e.vrijeme_odlaska)) AS ukupno_sati
+FROM zaposlenik z
+JOIN evidencija_rada e ON z.id = e.id_zaposlenik
+WHERE DATE_FORMAT(e.datum, '%Y-%m') = '2025-01'
+GROUP BY z.id
+ORDER BY ukupno_sati DESC;
+
+ -- Zaposlenici s najviše pozitivnih napomena
+
+SELECT CONCAT(z.ime, ' ', z.prezime) AS puno_ime, COUNT(n.id) AS broj_pozitivnih_napomena
+FROM zaposlenik z
+JOIN napomene n ON z.id = n.id_zaposlenik
+WHERE n.tip = 'pozitivna'
+GROUP BY z.id
+ORDER BY broj_pozitivnih_napomena DESC
+LIMIT 5;
+
+-- Ukupna plaća i broj prekovremenih sati po odjelu za određeni mjesec
+
+SELECT 
+    o.naziv AS odjel,
+    SUM(p.prekovremeni_sati) AS ukupno_prekovremeni_sati,
+    SUM(p.ukupna_placa) AS ukupna_isplacena_placa
+FROM odjel o
+JOIN zaposlenik z ON o.id = z.id_odjel
+JOIN place p ON z.id = p.id_zaposlenik
+WHERE p.godina_mjesec = '2025-01'
+GROUP BY o.id
+ORDER BY ukupna_isplacena_placa DESC;
 
 
 
@@ -651,7 +874,6 @@ FROM zaposlenik
 INNER JOIN odjel ON zaposlenik.id_odjel=odjel.id
 ORDER BY zaposlenik_id ASC;
 
-Select * FROM zaposlenici_odjeli;
 /*----------------------------------------------------------------------------------*/
 -- 2. View aktivni projekti
 DROP VIEW IF EXISTS aktivni_projekti;
@@ -659,9 +881,8 @@ DROP VIEW IF EXISTS aktivni_projekti;
 CREATE VIEW aktivni_projekti AS
 SELECT *
 FROM projekti
-WHERE status = 'aktivni';
+WHERE status_projekta = 'aktivni';
 
-SELECT * FROM aktivni_projekti;
 /*----------------------------------------------------------------------------------*/
 -- 3. View
 DROP VIEW IF EXISTS aktivni_zaposlenici;
@@ -670,7 +891,6 @@ SELECT z.id AS zaposlenik_id, CONCAT(z.ime, ' ', z.prezime) AS puno_ime, z.email
 	FROM zaposlenik z JOIN odjel o ON z.id_odjel = o.id 
 	WHERE z.status_zaposlenika = 'aktivan';
 
-SELECT * FROM aktivni_zaposlenici;
 /*----------------------------------------------------------------------------------*/
 -- 4. View
 DROP VIEW IF EXISTS mjesecne_place;
@@ -679,7 +899,6 @@ SELECT p.id AS placa_id, CONCAT(z.ime, ' ', z.prezime) AS zaposlenik, p.godina_m
 	FROM place p 
 	JOIN zaposlenik z ON p.id_zaposlenik = z.id;
 
-SELECT * FROM mjesecne_place;
 /*----------------------------------------------------------------------------------*/
 -- 5. View
 DROP VIEW IF EXISTS troskovi_sluzbenih_putovanja;
@@ -687,8 +906,6 @@ CREATE VIEW troskovi_sluzbenih_putovanja AS
 SELECT sp.id AS putovanje_id, CONCAT(z.ime, ' ', z.prezime) AS zaposlenik, sp.odrediste, sp.svrha_putovanja, sp.pocetni_datum, sp.zavrsni_datum, sp.troskovi 
 	FROM sluzbena_putovanja sp 
 	JOIN zaposlenik z ON sp.id_zaposlenik = z.id;
-
-SELECT * FROM troskovi_sluzbenih_putovanja;
 
 /*----------------------------------------------------------------------------------*/
 -- PROCEDURE ----
@@ -719,10 +936,6 @@ BEGIN
     );
 END //
 DELIMITER ;
-/*CALL dodaj_zaposlenika(
-    'Marko', 'Horvat', '12345678923', 'M', 'marko.horvat@email.com', '0911234567', '2025-01-10', 'Developer', 'aktivan', 50.00, 1
-);*/
--- Select * from zaposlenik;
 /*----------------------------------------------------------------------------------*/
 -- PROCEDURA BR.2 BRISI ZAPOSLENIKA
 DROP PROCEDURE IF EXISTS brisi_zaposlenika;
@@ -748,7 +961,7 @@ IN p_status ENUM('aktivni', 'završeni', 'odgođeni'),
 IN p_odgovorna_osoba INT
 )
 BEGIN
-	INSERT INTO projekti (naziv, opis, datum_pocetka, datum_zavrsetka, status, odgovorna_osoba)
+	INSERT INTO projekti (naziv, opis, datum_pocetka, datum_zavrsetka, status_projekta, odgovorna_osoba)
 	VALUES(p_naziv, p_opis, p_datum_pocetka, p_datum_zavrsetka, p_status, p_odgovorna_osoba);
 END //
 DELIMITER ;
@@ -848,13 +1061,13 @@ BEGIN
                 WHERE z.id NOT IN (
                     SELECT id_zaposlenik 
                     FROM godisnji_odmori 
-                    WHERE status = 'odobren' 
+                    WHERE status_god = 'odobren' 
                     AND (pocetni_datum BETWEEN pocetak AND kraj 
                         OR zavrsni_datum BETWEEN pocetak AND kraj))
             ) >= min_zaposlenika THEN
 			
                 UPDATE godisnji_odmori
-                SET status = 'odobren'
+                SET status_god = 'odobren'
                 WHERE id = unesi_id;
             END IF;
         END IF;
@@ -863,6 +1076,7 @@ BEGIN
     CLOSE izlazni_cur;
 END //
 DELIMITER ;
+
 /*----------------------------------------------------------------------------------*/
 -- PROCEDURA BR.9 Dodaj Zaposlenike u smjene
 DROP PROCEDURE IF EXISTS dodajZaposlenikeUSmjene;
@@ -911,6 +1125,7 @@ BEGIN
     CLOSE smjena_cur;
 END //
 DELIMITER ;
+
 /*----------------------------------------------------------------------------------*/
 -- PROCEDURA BR.10 Prerasporedi zaposlenike godisnji
 
@@ -938,7 +1153,7 @@ BEGIN
     DECLARE c CURSOR FOR
         SELECT id, id_zaposlenik, pocetni_datum, zavrsni_datum
         FROM godisnji_odmori
-        WHERE status = 'na čekanju'
+        WHERE status_god = 'na čekanju'
         ORDER BY datum_podnosenja; 
 		-- treba se promijeniti da se sortira po razini vaznosti u firmi (rola, npr. direktor - 999, menađer - 10, senior zaposlenik - 5, junior zaposlenik - 3, i slično)
         
@@ -978,7 +1193,7 @@ BEGIN
             day_check: WHILE trenutni_datum <= @novi_zavrsni_datum DO
                 SELECT COUNT(*) INTO ct
                 FROM godisnji_odmori
-                WHERE status = 'odobren' OR status = 'čeka prihvaćanje'
+                WHERE status_god = 'odobren' OR status_god = 'čeka prihvaćanje'
                   AND trenutni_datum BETWEEN pocetni_datum AND zavrsni_datum;
 
                 IF ct >= maxNaGodisnjem THEN
@@ -1009,7 +1224,7 @@ BEGIN
 
         IF NOT moze_se_odobriti THEN
             UPDATE godisnji_odmori
-               SET status = 'odbijen'
+               SET status_god = 'odbijen'
              WHERE id = v_id;
         END IF;
     END LOOP main_loop;
@@ -1018,6 +1233,7 @@ BEGIN
 END//
 
 DELIMITER ;
+
 /*----------------------------------------------------------------------------------*/
 -- PROCEDURA BR.11 Korisnik prihvaca godisnji
 
@@ -1026,18 +1242,216 @@ DELIMITER //
 CREATE PROCEDURE korisnikPrihvacaGodisnji(IN status_prihvacanja BOOL, IN id_godisnji INT)
 BEGIN
 	IF status_prihvacanja THEN
-		UPDATE godisnji_odmori SET status = 'odobren' WHERE id = id_godisnji AND status = 'čeka prihvaćanje';
+		UPDATE godisnji_odmori SET status_god = 'odobren' WHERE id = id_godisnji AND status_god = 'čeka prihvaćanje';
 	ELSE
-		UPDATE godisnji_odmori SET status = 'odbijen' WHERE id = id_godisnji AND status = 'čeka prihvaćanje';
+		UPDATE godisnji_odmori SET status_god = 'odbijen' WHERE id = id_godisnji AND status_god = 'čeka prihvaćanje';
 	END IF;
 END//
+DELIMITER ;
+
+/*----------------------------------------------------------------------------------*/
+-- PROCEDURA BR.12 Generiraj raspored
+
+DROP PROCEDURE IF EXISTS GenerirajRaspored;
+DELIMITER //
+
+CREATE PROCEDURE GenerirajRaspored(
+    IN pocetni_datum DATE, 
+    IN zavrsni_datum DATE, 
+    IN maxBrojUSmjeni INT
+)
+BEGIN
+    DECLARE trenutni_datum DATE;
+    DECLARE odjel_id INT;
+    DECLARE smjena_id INT;
+    DECLARE min_zaposlenika INT;
+    DECLARE zaposlenik_id INT;
+    DECLARE done INT DEFAULT 0;
+
+    DECLARE odjel_cur CURSOR FOR 
+        SELECT id FROM odjel;
+    
+    DECLARE smjena_cur CURSOR FOR 
+        SELECT id, min_broj_zaposlenika FROM smjene;
+    
+    DECLARE zaposlenik_cur CURSOR FOR 
+        SELECT id, id_odjel FROM zaposlenik ORDER BY datum_zaposljavanja ASC;
+    
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+    SET trenutni_datum = pocetni_datum;
+
+    WHILE trenutni_datum <= zavrsni_datum DO
+        OPEN odjel_cur;
+        SET done = 0;
+
+        odjeli_loop: LOOP
+            FETCH odjel_cur INTO odjel_id;
+            IF done = 1 THEN 
+                SET done = 0;
+                LEAVE odjeli_loop;
+            END IF;
+
+            OPEN smjena_cur;
+            SET done = 0;
+
+            smjene_loop: LOOP
+                FETCH smjena_cur INTO smjena_id, min_zaposlenika;
+                IF done = 1 THEN 
+                    SET done = 0; 
+                    LEAVE smjene_loop;
+                END IF;
+
+                OPEN zaposlenik_cur;
+                SET done = 0;
+
+                SET min_zaposlenika = LEAST(min_zaposlenika, maxBrojUSmjeni);
+
+                zaposlenici_loop: LOOP
+                    FETCH zaposlenik_cur INTO zaposlenik_id, odjel_id;
+                    IF done = 1 THEN 
+                        SET done = 0;
+                        LEAVE zaposlenici_loop;
+                    END IF;
+
+                    IF NOT EXISTS (
+                        SELECT 1 FROM raspored_rada 
+                        WHERE id_zaposlenik = zaposlenik_id 
+                        AND datum = trenutni_datum
+                    ) AND NOT EXISTS (
+                        SELECT 1 FROM godisnji_odmori 
+                        WHERE id_zaposlenik = zaposlenik_id 
+                        AND trenutni_datum BETWEEN pocetni_datum AND zavrsni_datum
+                    ) THEN
+                    
+                        INSERT INTO raspored_rada (id_zaposlenik, id_smjena, datum)
+                        VALUES (zaposlenik_id, smjena_id, trenutni_datum);
+                    
+                        SET min_zaposlenika = min_zaposlenika - 1;
+                        
+                        IF min_zaposlenika = 0 THEN
+                            LEAVE zaposlenici_loop;
+                        END IF;
+                    END IF;
+
+                END LOOP;
+                CLOSE zaposlenik_cur;
+
+            END LOOP;
+            CLOSE smjena_cur;
+
+        END LOOP;
+        CLOSE odjel_cur;
+        
+        SET trenutni_datum = DATE_ADD(trenutni_datum, INTERVAL 1 DAY);
+    END WHILE;
+END //
+
+DELIMITER ;
+
+/*----------------------------------------------------------------------------------*/
+-- PROCEDURA BR.13 Dodaj prekovremene sate
+DROP PROCEDURE IF EXISTS DodajPrekovremeneSate;
+
+DELIMITER //
+
+CREATE PROCEDURE DodajPrekovremeneSate (
+    IN p_id_zahtjev INT
+)
+BEGIN
+    DECLARE v_id_zaposlenik INT;
+    DECLARE v_sati INT;
+
+    SELECT id_zaposlenik, sati
+    INTO v_id_zaposlenik, v_sati
+    FROM zahtjev_prekovremeni
+    WHERE id = p_id_zahtjev;
+
+    UPDATE place
+    SET prekovremeni_sati = prekovremeni_sati + v_sati
+    WHERE id_zaposlenik = v_id_zaposlenik AND YEAR(godina_mjesec) = YEAR(CURDATE()) AND MONTH(godina_mjesec) = MONTH(CURDATE());
+
+    UPDATE zahtjev_prekovremeni
+    SET status_pre = 'odobren'
+    WHERE id = p_id_zahtjev;
+END//
+
+DELIMITER ;
+
+-- PROCEDURA BR.14 Prijenos projekta drugom zaposleniku
+
+DROP PROCEDURE IF EXISTS prijenos_projekta_drugom_zaposleniku;
+DELIMITER //
+
+CREATE PROCEDURE prijenos_projekta_drugom_zaposleniku(
+    IN projekt_id INT,          
+    IN novi_zap_id INT
+)
+BEGIN
+    
+    IF NOT EXISTS (SELECT 1 FROM projekti WHERE id = projekt_id) THEN
+        SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT = 'Projekt sa navedenim ID-om ne postoji.';
+    END IF;
+
+
+    IF NOT EXISTS (SELECT 1 FROM zaposlenik WHERE id = novi_zap_id) THEN
+        SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT = 'Nova odgovorna osoba ne postoji u sistemu.';
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM projekti WHERE id = projekt_id AND status_projekta = 'aktivni') THEN
+        SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT = 'Promena odgovorne osobe moguća je samo za aktivne projekte.';
+    END IF;
+
+    UPDATE projekti
+    SET odgovorna_osoba = novi_zap_id
+    WHERE id = projekt_id;
+
+    SELECT CONCAT('Projekt ID ', projekt_id, ' je uspešno prenesen na novog zaposlenika ID ', novi_zap_id) AS Poruka;
+END;
+
+//
+DELIMITER ;
+
+-- PROCEDURA BR.15 Ukupni izvjestaj troskova po mjesecu
+DROP PROCEDURE IF EXISTS UkupniIzvjestajTroskovaMjesec;
+DELIMITER //
+
+CREATE PROCEDURE UkupniIzvjestajTroskovaMjesec(
+    IN p_godina_mjesec CHAR(7)
+)
+BEGIN
+    SELECT
+        z.id AS zaposlenik_id,
+        CONCAT(z.ime, ' ', z.prezime) AS zaposlenik_ime,
+        z.satnica AS satnica,
+        SUM(p.radni_sati) AS ukupni_radni_sati,
+        SUM(p.prekovremeni_sati) AS ukupni_preko_sati,
+        SUM(p.radni_sati * z.satnica) AS ukupna_placa,
+        SUM(p.prekovremeni_sati * z.satnica * 2) AS ukupni_preko_sati_trosak,
+        -- 25% razni doprinosi
+        SUM((p.radni_sati * z.satnica + p.prekovremeni_sati * z.satnica * 2) * 0.25) AS ukupni_doprinose
+    FROM
+        zaposlenik AS z
+    JOIN
+        place AS p ON z.id = p.id_zaposlenik
+    WHERE
+        p.godina_mjesec = p_godina_mjesec
+    GROUP BY
+        z.id, z.ime, z.prezime, z.satnica
+    ORDER BY
+        zaposlenik_ime;
+
+END //
+
 DELIMITER ;
 
 /*----------------------------------------------------------------------------------*/
 -- FUNKCIJE
 
 DROP FUNCTION IF EXISTS mjesecnaPlaca;
-
 DELIMITER //
 CREATE FUNCTION mjesecnaPlaca(zaposlenik_id INT) RETURNS DECIMAL(10,2)
 DETERMINISTIC
@@ -1046,27 +1460,133 @@ BEGIN
     DECLARE broj_sati DECIMAL(10,2);
     DECLARE prekovremeni DECIMAL(10,2);
     DECLARE bolovanje INT;
+    DECLARE dopust_dani INT;
     DECLARE mjesecna DECIMAL(10,2);
+    DECLARE godina_mjesec CHAR(7);
+    DECLARE ukupan_broj_sati DECIMAL(10,2);
+    DECLARE status_prekovremeni VARCHAR(20);
 
+    -- Dohvati satnicu zaposlenika
     SELECT satnica INTO std_placa FROM zaposlenik WHERE id = zaposlenik_id;
 
+    -- Izračunaj ukupne radne sate za mjesec
     SELECT SUM(TIMESTAMPDIFF(HOUR, vrijeme_dolaska, vrijeme_odlaska)) INTO broj_sati 
-    FROM evidencija_rada WHERE id_zaposlenik = zaposlenik_id;
+    FROM evidencija_rada 
+    WHERE id_zaposlenik = zaposlenik_id AND YEAR(datum) = YEAR(CURDATE()) AND MONTH(datum) = MONTH(CURDATE());
 
-    SELECT SUM(GREATEST(0, TIMESTAMPDIFF(HOUR, vrijeme_dolaska, vrijeme_odlaska) - 7)) INTO prekovremeni
-    FROM evidencija_rada WHERE id_zaposlenik = zaposlenik_id;
+    -- Izračunaj prekovremene sate
+    SELECT status_pre INTO status_prekovremeni FROM zahtjev_prekovremeni WHERE id = zaposlenik_id;
+    IF (status_prekovremeni = 'odobren') THEN
+        SELECT IFNULL(SUM(sati), 0) INTO prekovremeni
+        FROM zahtjev_prekovremeni 
+        WHERE id_zaposlenik = zaposlenik_id 
+          AND YEAR(datum_prekovremeni) = YEAR(CURDATE()) 
+          AND MONTH(datum_prekovremeni) = MONTH(CURDATE());
+    END IF;
 
-    SELECT COUNT(*) INTO bolovanje 
-    FROM bolovanje WHERE id_zaposlenik = zaposlenik_id AND MONTH(pocetni_datum) = MONTH(CURDATE());
+    -- Izračunaj broj dana bolovanja
+    SELECT IFNULL(SUM(DATEDIFF(krajnji_datum, pocetni_datum) + 1), 0) INTO bolovanje
+		FROM bolovanje 
+		WHERE id_zaposlenik = zaposlenik_id 
+			AND YEAR(pocetni_datum) = YEAR(CURDATE()) 
+			AND MONTH(pocetni_datum) = MONTH(CURDATE());
+            
+	-- Izračunaj broj dana dopusta
+	
+	SELECT IFNULL(SUM(DATEDIFF(zavrsni_datum, pocetni_datum) + 1), 0) INTO dopust_dani
+		FROM dopust 
+		WHERE id_zaposlenik = zaposlenik_id 
+			AND YEAR(pocetni_datum) = YEAR(CURDATE()) 
+			AND MONTH(pocetni_datum) = MONTH(CURDATE())
+			AND tip_dopusta = 'neplaćeni';
+            
+    -- Izračunaj mjesec i godinu za unos u tablicu
+    SET godina_mjesec = DATE_FORMAT(CURDATE(), '%Y-%m'); -- Formatira datum u 'YYYY-MM'
+    
+    -- ukupan broj odradenih sati
+   SET ukupan_broj_sati = broj_sati - (dopust_dani * 8);
 
-    SET mjesecna = ((broj_sati * std_placa) + (prekovremeni * std_placa * 2) - (bolovanje * 3 * std_placa));
+    -- Izračunaj ukupnu plaću
+    SET mjesecna = ((ukupan_broj_sati  * std_placa) + (prekovremeni * std_placa * 2) - (bolovanje * 3 * std_placa));
 
+    -- Upis u tablicu place
     INSERT INTO place (id_zaposlenik, godina_mjesec, radni_sati, prekovremeni_sati, bolovanje_dani, ukupna_placa)
-    VALUES (zaposlenik_id, DATE(CURDATE()), broj_sati, prekovremeni, bolovanje, mjesecna)
+    VALUES (zaposlenik_id, godina_mjesec, broj_sati, prekovremeni, bolovanje, mjesecna)
     ON DUPLICATE KEY UPDATE ukupna_placa = mjesecna;
 
+    -- Vratiti ukupnu plaću
     RETURN mjesecna;
 END //
 DELIMITER ;
 
-SELECT mjesecnaPlaca(1);
+/*----------------------------------------------------------------------------------*/
+DELIMITER //
+CREATE FUNCTION TroskoviPutovanjaPoOdjelu(OdjelID INT)
+RETURNS DECIMAL(10,2)
+DETERMINISTIC
+BEGIN
+    DECLARE UkupniTroskovi DECIMAL(10,2);
+    SELECT SUM(troskovi) INTO UkupniTroskovi
+    FROM sluzbena_putovanja sp
+    JOIN zaposlenik z ON sp.id_zaposlenik = z.id
+    WHERE z.id_odjel = OdjelID;
+    
+    RETURN IFNULL(UkupniTroskovi, 0);
+END //
+DELIMITER ;
+SELECT TroskoviPutovanjaPoOdjelu(1);
+/*----------------------------------------------------------------------------------*/
+DELIMITER //
+CREATE FUNCTION provjera_dostupnosti(
+    p_id_zaposlenik INT,
+    p_datum DATE
+) RETURNS VARCHAR(20)
+READS SQL DATA
+BEGIN
+    DECLARE zauzet BOOLEAN DEFAULT FALSE;
+    DECLARE status VARCHAR(20);
+
+    SELECT EXISTS (
+        SELECT 1
+        FROM bolovanje
+        WHERE id_zaposlenik = p_id_zaposlenik 
+          AND (p_datum = pocetni_datum OR p_datum = krajnji_datum OR (p_datum > pocetni_datum AND p_datum < krajnji_datum))
+    ) INTO zauzet;
+
+    IF NOT zauzet THEN
+        SELECT EXISTS (
+            SELECT 1
+            FROM godisnji_odmori
+            WHERE id_zaposlenik = p_id_zaposlenik 
+              AND (p_datum = pocetni_datum OR p_datum = zavrsni_datum OR (p_datum > pocetni_datum AND p_datum < zavrsni_datum))
+        ) INTO zauzet;
+    END IF;
+
+    IF NOT zauzet THEN
+        SELECT EXISTS (
+            SELECT 1
+            FROM sluzbena_putovanja
+            WHERE id_zaposlenik = p_id_zaposlenik 
+              AND (p_datum = pocetni_datum OR p_datum = zavrsni_datum OR (p_datum > pocetni_datum AND p_datum < zavrsni_datum))
+        ) INTO zauzet;
+    END IF;
+
+    IF NOT zauzet THEN
+        SELECT EXISTS (
+            SELECT 1
+            FROM dopust
+            WHERE id_zaposlenik = p_id_zaposlenik 
+            AND (p_datum = pocetni_datum OR p_datum = zavrsni_datum OR (p_datum > pocetni_datum AND p_datum < zavrsni_datum))
+            AND LOWER(TRIM(status_dopusta)) = 'odobren'  
+        ) INTO zauzet;
+    END IF;
+
+    IF zauzet THEN
+        SET status = 'Nedostupan';
+    ELSE
+        SET status = 'Dostupan';
+    END IF;
+
+    RETURN status;
+END//
+DELIMITER ;

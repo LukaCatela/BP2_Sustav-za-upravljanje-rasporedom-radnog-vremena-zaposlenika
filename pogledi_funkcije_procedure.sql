@@ -624,6 +624,7 @@ BEGIN
     DECLARE mjesecna DECIMAL(10,2);
     DECLARE godina_mjesec CHAR(7);
     DECLARE ukupan_broj_sati DECIMAL(10,2);
+    DECLARE status_prekovremeni VARCHAR(20);
 
     -- Dohvati satnicu zaposlenika
     SELECT satnica INTO std_placa FROM zaposlenik WHERE id = zaposlenik_id;
@@ -634,9 +635,14 @@ BEGIN
     WHERE id_zaposlenik = zaposlenik_id AND YEAR(datum) = YEAR(CURDATE()) AND MONTH(datum) = MONTH(CURDATE());
 
     -- Izračunaj prekovremene sate
-    SELECT SUM(GREATEST(0, TIMESTAMPDIFF(HOUR, vrijeme_dolaska, vrijeme_odlaska) - 8)) INTO prekovremeni
-    FROM evidencija_rada 
-    WHERE id_zaposlenik = zaposlenik_id AND YEAR(datum) = YEAR(CURDATE()) AND MONTH(datum) = MONTH(CURDATE());
+    SELECT status_pre INTO status_prekovremeni FROM zahtjev_prekovremeni WHERE id = zaposlenik_id;
+    IF (status_prekovremeni = 'odobren') THEN
+        SELECT IFNULL(SUM(sati), 0) INTO prekovremeni
+        FROM zahtjev_prekovremeni 
+        WHERE id_zaposlenik = zaposlenik_id 
+          AND YEAR(datum_prekovremeni) = YEAR(CURDATE()) 
+          AND MONTH(datum_prekovremeni) = MONTH(CURDATE());
+    END IF;
 
     -- Izračunaj broj dana bolovanja
     SELECT IFNULL(SUM(DATEDIFF(krajnji_datum, pocetni_datum) + 1), 0) INTO bolovanje
@@ -672,6 +678,7 @@ BEGIN
     RETURN mjesecna;
 END //
 DELIMITER ;
+
 
 
 SELECT mjesecnaPlaca(1);

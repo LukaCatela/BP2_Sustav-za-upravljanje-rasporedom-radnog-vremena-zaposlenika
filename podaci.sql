@@ -456,7 +456,8 @@ VALUES
 (27, '2024-12-27', 2, 'Prezentacija upravi', 'na čekanju'),
 (28, '2024-12-28', 3, 'Razvoj marketing plana', 'odobren'),
 (29, '2024-12-29', 4, 'Priprema godišnjeg izvješća', 'na čekanju'),
-(30, '2024-12-30', 5, 'Unapređenje sustava', 'odobren');
+(30, '2024-12-30', 5, 'Unapređenje sustava', 'odobren'),
+(1, '2025-01-02', 4, 'Tehnička podrška', 'odobren');
 
 INSERT INTO preferencije_smjena (id_zaposlenik, id_vrsta_smjene, datum, prioritet)
 VALUES

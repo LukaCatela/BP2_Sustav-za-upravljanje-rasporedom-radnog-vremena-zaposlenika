@@ -2,6 +2,9 @@ DROP DATABASE IF EXISTS bp_2_projekt;
 CREATE DATABASE bp_2_projekt;
 USE bp_2_projekt;
 
+/*----------------------------------------------------------------------------------*/
+
+-- Tablica odjela
 CREATE TABLE odjel(
     id INT PRIMARY KEY AUTO_INCREMENT,
     naziv VARCHAR(50),
@@ -86,7 +89,7 @@ CREATE TABLE evidencija_rada(
 CREATE TABLE place(
     id INT PRIMARY KEY AUTO_INCREMENT,
     id_zaposlenik INT NOT NULL,
-    godina_mjesec DATE NOT NULL,
+    godina_mjesec CHAR(7) NOT NULL,
     radni_sati INT NOT NULL CHECK(radni_sati >= 0),
     prekovremeni_sati INT NOT NULL CHECK(prekovremeni_sati >= 0),
     bolovanje_dani INT NOT NULL DEFAULT 0,
@@ -99,7 +102,7 @@ CREATE TABLE godisnji_odmori (
     id_zaposlenik INT NOT NULL,
     pocetni_datum DATE NOT NULL,
     zavrsni_datum DATE NOT NULL,
-    status ENUM('odobren', 'odbijen', 'na čekanju', 'iskorišten') DEFAULT 'na čekanju', 
+    status_god ENUM('odobren', 'odbijen', 'na čekanju', 'iskorišten') DEFAULT 'na čekanju', 
     datum_podnosenja DATE, 
     godina INT NOT NULL, 
     broj_dana INT NOT NULL, 
@@ -151,7 +154,7 @@ CREATE TABLE dopust (
     pocetni_datum DATE NOT NULL,
     zavrsni_datum DATE NOT NULL,
     tip_dopusta ENUM('plaćeni', 'neplaćeni') NOT NULL,
-    status ENUM('odobren', 'odbijen', 'na čekanju') DEFAULT 'na čekanju',
+    status_dopust ENUM('odobren', 'odbijen', 'na čekanju') DEFAULT 'na čekanju',
     razlog VARCHAR(500), 
     datum_podnosenja DATE NOT NULL, 
     FOREIGN KEY (id_zaposlenik) REFERENCES zaposlenik(id) ON DELETE CASCADE,
@@ -165,7 +168,7 @@ CREATE TABLE projekti (
     opis TEXT,
     datum_pocetka DATE NOT NULL,
     datum_zavrsetka DATE,
-    status ENUM('aktivni', 'završeni', 'odgođeni') DEFAULT 'aktivni',
+    status_projekta ENUM('aktivni', 'završeni', 'odgođeni') DEFAULT 'aktivni',
     odgovorna_osoba INT, 
     FOREIGN KEY (odgovorna_osoba) REFERENCES zaposlenik(id) ON DELETE CASCADE,
     CONSTRAINT ck_datum_projekt CHECK(datum_pocetka <= datum_zavrsetka)
@@ -180,7 +183,7 @@ CREATE TABLE zadaci (
     opis TEXT,
     datum_pocetka DATE NOT NULL,
     datum_zavrsetka DATE,
-    status ENUM('u tijeku', 'završeni', 'odgođeni') DEFAULT 'u tijeku',
+    status_zadaci ENUM('u tijeku', 'završeni', 'odgođeni') DEFAULT 'u tijeku',
     prioritet ENUM('nizak', 'srednji', 'visok') DEFAULT 'srednji', 
     FOREIGN KEY (id_projekt) REFERENCES projekti(id),
     FOREIGN KEY (id_zaposlenik) REFERENCES zaposlenik(id) ON DELETE CASCADE,
@@ -197,6 +200,8 @@ CREATE TABLE napomene (
 );
 /*----------------------------------------------------------------------------------*/
 -- Okidaci
+DROP TRIGGER IF EXISTS azuriraj_status_prekovremeni;
+
 DELIMITER //
 CREATE TRIGGER azuriraj_status_prekovremeni
 AFTER UPDATE ON zahtjev_prekovremeni
@@ -210,14 +215,30 @@ BEGIN
 END //
 DELIMITER ;
 
+-- Azuriranje statusa projekta ako je unesem zavrsni datum --
+DROP TRIGGER IF EXISTS azuriranje_statusa_projekta;
+
+DELIMITER //
+CREATE TRIGGER azuriranje_statusa_projekta
+BEFORE UPDATE ON projekti
+FOR EACH ROW
+BEGIN
+  IF NEW.datum_zavrsetka IS NOT NULL AND NEW.status_projekta != 'završeni' THEN
+    SET NEW.status_projekta = 'završeni';
+  END IF;
+END//
+
+DELIMITER ;
 -- Automatsko postavljanje statusa projekta na "završeni"
+DROP TRIGGER IF EXISTS trg_projekt_status_zavrsen;
+
 DELIMITER //
 CREATE TRIGGER trg_projekt_status_zavrsen
 BEFORE UPDATE ON projekti
 FOR EACH ROW
 BEGIN
-	IF NEW.datum_zavrsetka IS NOT NULL AND NEW.status != 'završeni' THEN
-		SET NEW.status = 'završeni';
+	IF NEW.datum_zavrsetka IS NOT NULL AND NEW.status_projekta != 'završeni' THEN
+		SET NEW.status_projekta = 'završeni';
 	END IF;
 END //
 

@@ -11,29 +11,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
-@app.route('/test-connection', methods=['GET'])
-def test_connection():
-    try:
-        # Test the database connection by executing a simple query
-        with db.engine.connect() as connection:
-            result = connection.execute(text("SELECT 1"))
-            if result.fetchone():
-                return "Database connection successful."
-    except Exception as e:
-        # Print detailed error for debugging
-        print(f"Database connection error: {e}")
-        return f"Database connection failed: {e}"
-
-@app.route('/test-zaposlenik')
-def test_zaposlenik():
-    try:
-        with db.engine.connect() as conn:
-            result = conn.execute(text("SELECT * FROM zaposlenik"))
-            data = [dict(row._mapping) for row in result]
-            return jsonify(data)
-    except Exception as e:
-        return f"Error fetching data: {e}"
-
 @app.route('/')
 def index():
     if 'admin' in session and session['admin']:

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Generiraj Raspored</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header>
+    <h1>Generiraj Raspored</h1>
+    {% if error_message %}
+      <p style="color: red;">{{ error_message }}</p>
+    {% endif %}
+    {% if success_message %}
+      <p style="color: green;">{{ success_message }}</p>
+    {% endif %}
+  </header>
+  <main>
+    <form method="POST" action="{{ url_for('generiraj_raspored') }}">
+      <div>
+        <label for="start_date">Početni datum:</label>
+        <input type="date" id="start_date" name="start_date" required>
+      </div>
+      <div>
+        <label for="end_date">Završni datum:</label>
+        <input type="date" id="end_date" name="end_date" required>
+      </div>
+      <div>
+        <label for="max_people">Max broj ljudi po smjeni:</label>
+        <input type="number" id="max_people" name="max_people" min="1" required>
+      </div>
+      <button type="submit">Generiraj</button>
+    </form>
+    <div style="margin-top: 20px;">
+      <button onclick="window.location.href='{{ url_for('index') }}'">Povratak na početnu</button>
+    </div>
+  </main>
+</body>
+</html>

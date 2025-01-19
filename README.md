@@ -131,6 +131,6 @@ Koraci za kreiranje baze podataka:
 Pokretanje web aplikacije
 
     1. Otvorite terminal u datoteci u kojoj se nalazi projekt
-    2. Kako bi aktivirali environment upišite: . \myVenv\Scripts\activate
+    2. Kako bi aktivirali environment upišite:.\myVenv\Scripts\activate
     3. Kako bi pokrenuli web aplikaciju upišite: flask run
     4. Otvorite dobivenu lokalnu adresu u bilo kojem internet pregledniku

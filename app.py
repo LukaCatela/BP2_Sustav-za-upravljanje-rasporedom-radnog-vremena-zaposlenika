@@ -47,6 +47,35 @@ def index():
 
     return render_template('index.html', is_admin=False, schedule=schedule, message=None)
 
+@app.route('/dodaj_zaposlenika', methods=['GET', 'POST'])
+def dodaj_zaposlenika():
+    if request.method == 'POST':
+        data = request.json  # Expecting JSON input from the client
+        try:
+            with db.engine.connect() as conn:
+                conn.execute(
+                    text("CALL dodaj_zaposlenika(:p_ime, :p_prezime, :p_oib, :p_spol, :p_email, :p_broj_telefona, :p_datum_zaposljavanja, :p_pozicija, :p_status_zaposlenika, :p_satnica, :p_id_odjel)"),
+                    {
+                        'p_ime': data['ime'],
+                        'p_prezime': data['prezime'],
+                        'p_oib': data['oib'],
+                        'p_spol': data['spol'],
+                        'p_email': data['email'],
+                        'p_broj_telefona': data['broj_telefona'],
+                        'p_datum_zaposljavanja': data['datum_zaposljavanja'],
+                        'p_pozicija': data['pozicija'],
+                        'p_status_zaposlenika': data['status_zaposlenika'],
+                        'p_satnica': data['satnica'],
+                        'p_id_odjel': data['id_odjel']
+                    }
+                )
+            return jsonify({"message": "Employee added successfully!"}), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+    else:
+        # Render the HTML form when accessed via GET
+        return render_template('dodaj_zaposlenika.html')
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':

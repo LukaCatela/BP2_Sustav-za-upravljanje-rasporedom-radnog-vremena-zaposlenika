@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dodaj Zaposlenika</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Dodaj Zaposlenika</h1>
+        <button onclick="window.location.href='/'">Povratak</button>
+    </header>
+    <main>
+        <form id="dodaj-zaposlenika-form">
+            <label for="ime">Ime:</label>
+            <input type="text" id="ime" name="ime" required>
+
+            <label for="prezime">Prezime:</label>
+            <input type="text" id="prezime" name="prezime" required>
+
+            <label for="oib">OIB:</label>
+            <input type="text" id="oib" name="oib" maxlength="11" required>
+
+            <label for="spol">Spol:</label>
+            <select id="spol" name="spol" required>
+                <option value="M">Muški</option>
+                <option value="Ž">Ženski</option>
+            </select>
+
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+
+            <label for="broj_telefona">Broj Telefona:</label>
+            <input type="text" id="broj_telefona" name="broj_telefona" required>
+
+            <label for="datum_zaposljavanja">Datum Zapošljavanja:</label>
+            <input type="date" id="datum_zaposljavanja" name="datum_zaposljavanja" required>
+
+            <label for="pozicija">Pozicija:</label>
+            <input type="text" id="pozicija" name="pozicija" required>
+
+            <label for="status_zaposlenika">Status Zaposlenika:</label>
+            <input type="text" id="status_zaposlenika" name="status_zaposlenika" required>
+
+            <label for="satnica">Satnica:</label>
+            <input type="number" id="satnica" name="satnica" step="0.01" required>
+
+            <label for="id_odjel">ID Odjela:</label>
+            <input type="number" id="id_odjel" name="id_odjel" required>
+
+            <button type="submit">Dodaj Zaposlenika</button>
+        </form>
+    </main>
+
+    <script>
+        const form = document.getElementById('dodaj-zaposlenika-form');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(form);
+
+            const data = Object.fromEntries(formData.entries());
+
+            try {
+                const response = await fetch('/dodaj_zaposlenika', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                });
+
+                if (response.ok) {
+                    alert('Zaposlenik uspješno dodan!');
+                    form.reset();
+                } else {
+                    const errorData = await response.json();
+                    alert(`Pogreška: ${errorData.error}`);
+                }
+            } catch (error) {
+                console.error('Error submitting form:', error);
+                alert('Došlo je do pogreške prilikom slanja zahtjeva.');
+            }
+        });
+    </script>
+</body>
+</html>

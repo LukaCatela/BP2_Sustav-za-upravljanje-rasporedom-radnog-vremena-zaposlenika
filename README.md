@@ -126,7 +126,8 @@ Koraci za kreiranje baze podataka:
     ili posebno file-ove tim redoslijedom:
     baza_raspored_tablice.sql,
     podaci.sql,
-    pogledi_funkcije_procedure.sql
+    pogledi_funkcije_procedure.sql,
+    querry.sql
 
 Pokretanje web aplikacije
 

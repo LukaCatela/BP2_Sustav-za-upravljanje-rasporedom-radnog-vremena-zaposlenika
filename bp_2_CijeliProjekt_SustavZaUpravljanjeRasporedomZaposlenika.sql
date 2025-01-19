@@ -702,7 +702,8 @@ VALUES
 (27, '2024-12-27', 2, 'Prezentacija upravi', 'na čekanju'),
 (28, '2024-12-28', 3, 'Razvoj marketing plana', 'odobren'),
 (29, '2024-12-29', 4, 'Priprema godišnjeg izvješća', 'na čekanju'),
-(30, '2024-12-30', 5, 'Unapređenje sustava', 'odobren');
+(30, '2024-12-30', 5, 'Unapređenje sustava', 'odobren'),
+(1, '2025-01-02', 4, 'Tehnička podrška', 'odobren');
 
 INSERT INTO preferencije_smjena (id_zaposlenik, id_vrsta_smjene, datum, prioritet)
 VALUES
@@ -869,7 +870,6 @@ FROM zaposlenik
 INNER JOIN odjel ON zaposlenik.id_odjel=odjel.id
 ORDER BY zaposlenik_id ASC;
 
-Select * FROM zaposlenici_odjeli;
 /*----------------------------------------------------------------------------------*/
 -- 2. View aktivni projekti
 DROP VIEW IF EXISTS aktivni_projekti;
@@ -879,7 +879,6 @@ SELECT *
 FROM projekti
 WHERE status_projekta = 'aktivni';
 
-SELECT * FROM aktivni_projekti;
 /*----------------------------------------------------------------------------------*/
 -- 3. View
 DROP VIEW IF EXISTS aktivni_zaposlenici;
@@ -888,7 +887,6 @@ SELECT z.id AS zaposlenik_id, CONCAT(z.ime, ' ', z.prezime) AS puno_ime, z.email
 	FROM zaposlenik z JOIN odjel o ON z.id_odjel = o.id 
 	WHERE z.status_zaposlenika = 'aktivan';
 
-SELECT * FROM aktivni_zaposlenici;
 /*----------------------------------------------------------------------------------*/
 -- 4. View
 DROP VIEW IF EXISTS mjesecne_place;
@@ -897,7 +895,6 @@ SELECT p.id AS placa_id, CONCAT(z.ime, ' ', z.prezime) AS zaposlenik, p.godina_m
 	FROM place p 
 	JOIN zaposlenik z ON p.id_zaposlenik = z.id;
 
-SELECT * FROM mjesecne_place;
 /*----------------------------------------------------------------------------------*/
 -- 5. View
 DROP VIEW IF EXISTS troskovi_sluzbenih_putovanja;
@@ -905,8 +902,6 @@ CREATE VIEW troskovi_sluzbenih_putovanja AS
 SELECT sp.id AS putovanje_id, CONCAT(z.ime, ' ', z.prezime) AS zaposlenik, sp.odrediste, sp.svrha_putovanja, sp.pocetni_datum, sp.zavrsni_datum, sp.troskovi 
 	FROM sluzbena_putovanja sp 
 	JOIN zaposlenik z ON sp.id_zaposlenik = z.id;
-
-SELECT * FROM troskovi_sluzbenih_putovanja;
 
 /*----------------------------------------------------------------------------------*/
 -- PROCEDURE ----
@@ -937,10 +932,6 @@ BEGIN
     );
 END //
 DELIMITER ;
-/*CALL dodaj_zaposlenika(
-    'Marko', 'Horvat', '12345678923', 'M', 'marko.horvat@email.com', '0911234567', '2025-01-10', 'Developer', 'aktivan', 50.00, 1
-);*/
--- Select * from zaposlenik;
 /*----------------------------------------------------------------------------------*/
 -- PROCEDURA BR.2 BRISI ZAPOSLENIKA
 DROP PROCEDURE IF EXISTS brisi_zaposlenika;
@@ -1081,6 +1072,7 @@ BEGIN
     CLOSE izlazni_cur;
 END //
 DELIMITER ;
+
 /*----------------------------------------------------------------------------------*/
 -- PROCEDURA BR.9 Dodaj Zaposlenike u smjene
 DROP PROCEDURE IF EXISTS dodajZaposlenikeUSmjene;
@@ -1129,6 +1121,7 @@ BEGIN
     CLOSE smjena_cur;
 END //
 DELIMITER ;
+
 /*----------------------------------------------------------------------------------*/
 -- PROCEDURA BR.10 Prerasporedi zaposlenike godisnji
 
@@ -1236,6 +1229,7 @@ BEGIN
 END//
 
 DELIMITER ;
+
 /*----------------------------------------------------------------------------------*/
 -- PROCEDURA BR.11 Korisnik prihvaca godisnji
 
@@ -1350,11 +1344,6 @@ BEGIN
 END //
 
 DELIMITER ;
-/*
-CALL GenerirajRaspored('2025-05-01', '2025-05-31', 5);
-SELECT * FROM raspored_rada ORDER BY datum;
-select id_smjena from raspored_rada;
-*/
 
 /*----------------------------------------------------------------------------------*/
 -- PROCEDURA BR.13 Dodaj prekovremene sate
@@ -1384,6 +1373,78 @@ BEGIN
 END//
 
 DELIMITER ;
+
+-- PROCEDURA BR.14 Prijenos projekta drugom zaposleniku
+
+DROP PROCEDURE IF EXISTS prijenos_projekta_drugom_zaposleniku;
+DELIMITER //
+
+CREATE PROCEDURE prijenos_projekta_drugom_zaposleniku(
+    IN projekt_id INT,          
+    IN novi_zap_id INT
+)
+BEGIN
+    
+    IF NOT EXISTS (SELECT 1 FROM projekti WHERE id = projekt_id) THEN
+        SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT = 'Projekt sa navedenim ID-om ne postoji.';
+    END IF;
+
+
+    IF NOT EXISTS (SELECT 1 FROM zaposlenik WHERE id = novi_zap_id) THEN
+        SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT = 'Nova odgovorna osoba ne postoji u sistemu.';
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM projekti WHERE id = projekt_id AND status_projekta = 'aktivni') THEN
+        SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT = 'Promena odgovorne osobe moguća je samo za aktivne projekte.';
+    END IF;
+
+    UPDATE projekti
+    SET odgovorna_osoba = novi_zap_id
+    WHERE id = projekt_id;
+
+    SELECT CONCAT('Projekt ID ', projekt_id, ' je uspešno prenesen na novog zaposlenika ID ', novi_zap_id) AS Poruka;
+END;
+
+//
+DELIMITER ;
+
+-- PROCEDURA BR.15 Ukupni izvjestaj troskova po mjesecu
+DROP PROCEDURE IF EXISTS UkupniIzvjestajTroskovaMjesec;
+DELIMITER //
+
+CREATE PROCEDURE UkupniIzvjestajTroskovaMjesec(
+    IN p_godina_mjesec CHAR(7)
+)
+BEGIN
+    SELECT
+        z.id AS zaposlenik_id,
+        CONCAT(z.ime, ' ', z.prezime) AS zaposlenik_ime,
+        z.satnica AS satnica,
+        SUM(p.radni_sati) AS ukupni_radni_sati,
+        SUM(p.prekovremeni_sati) AS ukupni_preko_sati,
+        SUM(p.radni_sati * z.satnica) AS ukupna_placa,
+        SUM(p.prekovremeni_sati * z.satnica * 2) AS ukupni_preko_sati_trosak,
+        -- 25% razni doprinosi
+        SUM((p.radni_sati * z.satnica + p.prekovremeni_sati * z.satnica * 2) * 0.25) AS ukupni_doprinose
+    FROM
+        zaposlenik AS z
+    JOIN
+        place AS p ON z.id = p.id_zaposlenik
+    WHERE
+        p.godina_mjesec = p_godina_mjesec
+    GROUP BY
+        z.id, z.ime, z.prezime, z.satnica
+    ORDER BY
+        zaposlenik_ime;
+
+END //
+
+DELIMITER ;
+
+CALL UkupniIzvjestajTroskovaMjesec('2025-01');
 /*----------------------------------------------------------------------------------*/
 -- FUNKCIJE
 
@@ -1449,16 +1510,6 @@ BEGIN
 END //
 DELIMITER ;
 
-
-SELECT mjesecnaPlaca(1);
-SELECT mjesecnaPlaca(2);
-SELECT mjesecnaPlaca(3);
-SELECT mjesecnaPlaca(4);
-SELECT mjesecnaPlaca(5);
-SELECT mjesecnaPlaca(6);
-SELECT mjesecnaPlaca(7);
-SELECT mjesecnaPlaca(30);
-SELECT * FROM place;
 /*----------------------------------------------------------------------------------*/
 DELIMITER //
 CREATE FUNCTION TroskoviPutovanjaPoOdjelu(OdjelID INT)

@@ -527,3 +527,4 @@ VALUES
 ('Projekt Theta', 'Migracija podataka u cloud.', '2023-03-01', NULL, 'aktivni', 8),
 ('Projekt Iota', 'Testiranje sigurnosnih protokola.', '2023-09-01', NULL, 'odgođeni', 9),
 ('Projekt Kappa', 'Planiranje nove mrežne infrastrukture.', '2023-10-01', '2023-12-15', 'završeni', 10);
+ 

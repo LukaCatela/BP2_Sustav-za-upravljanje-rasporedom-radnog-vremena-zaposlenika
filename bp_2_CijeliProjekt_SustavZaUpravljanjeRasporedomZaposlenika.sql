@@ -703,7 +703,11 @@ VALUES
 (28, '2024-12-28', 3, 'Razvoj marketing plana', 'odobren'),
 (29, '2024-12-29', 4, 'Priprema godišnjeg izvješća', 'na čekanju'),
 (30, '2024-12-30', 5, 'Unapređenje sustava', 'odobren'),
-(1, '2025-01-02', 4, 'Tehnička podrška', 'odobren');
+(1, '2025-01-02', 4, 'Tehnička podrška', 'odobren'),
+(3, '2025-01-02', 2, 'Razvoj softverskog modula', 'odobren'),
+(4, '2025-01-02', 3, 'Prezentacija upravi', 'na čekanju'),
+(1, '2025-01-05', 1, 'Migracija podataka', 'odobren');
+
 
 INSERT INTO preferencije_smjena (id_zaposlenik, id_vrsta_smjene, datum, prioritet)
 VALUES
@@ -1444,7 +1448,6 @@ END //
 
 DELIMITER ;
 
-CALL UkupniIzvjestajTroskovaMjesec('2025-01');
 /*----------------------------------------------------------------------------------*/
 -- FUNKCIJE
 
@@ -1461,6 +1464,7 @@ BEGIN
     DECLARE mjesecna DECIMAL(10,2);
     DECLARE godina_mjesec CHAR(7);
     DECLARE ukupan_broj_sati DECIMAL(10,2);
+    DECLARE status_prekovremeni VARCHAR(20);
 
     -- Dohvati satnicu zaposlenika
     SELECT satnica INTO std_placa FROM zaposlenik WHERE id = zaposlenik_id;
@@ -1471,9 +1475,14 @@ BEGIN
     WHERE id_zaposlenik = zaposlenik_id AND YEAR(datum) = YEAR(CURDATE()) AND MONTH(datum) = MONTH(CURDATE());
 
     -- Izračunaj prekovremene sate
-    SELECT SUM(GREATEST(0, TIMESTAMPDIFF(HOUR, vrijeme_dolaska, vrijeme_odlaska) - 8)) INTO prekovremeni
-    FROM evidencija_rada 
-    WHERE id_zaposlenik = zaposlenik_id AND YEAR(datum) = YEAR(CURDATE()) AND MONTH(datum) = MONTH(CURDATE());
+    SELECT status_pre INTO status_prekovremeni FROM zahtjev_prekovremeni WHERE id = zaposlenik_id;
+    IF (status_prekovremeni = 'odobren') THEN
+        SELECT IFNULL(SUM(sati), 0) INTO prekovremeni
+        FROM zahtjev_prekovremeni 
+        WHERE id_zaposlenik = zaposlenik_id 
+          AND YEAR(datum_prekovremeni) = YEAR(CURDATE()) 
+          AND MONTH(datum_prekovremeni) = MONTH(CURDATE());
+    END IF;
 
     -- Izračunaj broj dana bolovanja
     SELECT IFNULL(SUM(DATEDIFF(krajnji_datum, pocetni_datum) + 1), 0) INTO bolovanje

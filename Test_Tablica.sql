@@ -251,6 +251,7 @@ INSERT INTO zaposlenik (ime, prezime, oib, spol, email, broj_telefona, datum_zap
 ('Ivan', 'Bezić', '34568998765', 'M', 'ivan.bezic@example.com', '0934567893', '2021-02-01', 'IT stručnjak', 'Aktivan', 50.00, 1);
 
 /*----------------------------------------------------------------------------------*/
+DROP USER IF EXISTS 'ivana.horvat'@'localhost';
 CREATE USER 'ivana.horvat'@'localhost' IDENTIFIED BY 'baze123';
 
 GRANT ALL PRIVILEGES ON bp_2_projekt.* TO 'ivana.horvat'@'localhost';
@@ -629,7 +630,7 @@ WHERE status = 'aktivni';
 SELECT * FROM aktivni_projekti;
 
 -- 3. View
-DROP VIEW IF EXISTS
+DROP VIEW IF EXISTS aktivni_zaposlenici;
 CREATE VIEW aktivni_zaposlenici AS
 SELECT z.id AS zaposlenik_id, CONCAT(z.ime, ' ', z.prezime) AS puno_ime, z.email, z.broj_telefona, o.naziv AS odjel, z.pozicija, z.satnica 
 	FROM zaposlenik z JOIN odjel o ON z.id_odjel = o.id 
@@ -754,7 +755,7 @@ BEGIN
     WHERE rr.datum = p_datum;
 END //
 DELIMITER ;
-CALL prikaz_smjene_zaposlenika();
+-- CALL prikaz_smjene_zaposlenika();
 select * from smjene;
 -- PROCEDURA BR.7 DODAVANJE BILJESKE ZA ZAPOSLENIKA
 DROP PROCEDURE IF EXISTS dodavanje_biljeske_za_zaposlenika;

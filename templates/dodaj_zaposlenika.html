@@ -9,10 +9,11 @@
 <body>
     <header>
         <h1>Dodaj Zaposlenika</h1>
-        <button onclick="window.location.href='/'">Povratak</button>
+        <button onclick="window.location.href='/logout'" style="float: right;">Logout</button>
     </header>
+
     <main>
-        <form id="dodaj-zaposlenika-form">
+        <form id="add-zaposlenik-form" onsubmit="submitForm(event)">
             <label for="ime">Ime:</label>
             <input type="text" id="ime" name="ime" required>
 
@@ -20,12 +21,12 @@
             <input type="text" id="prezime" name="prezime" required>
 
             <label for="oib">OIB:</label>
-            <input type="text" id="oib" name="oib" maxlength="11" required>
+            <input type="text" id="oib" name="oib" required>
 
             <label for="spol">Spol:</label>
             <select id="spol" name="spol" required>
-                <option value="M">Muški</option>
-                <option value="Ž">Ženski</option>
+                <option value="M">M</option>
+                <option value="Ž">Ž</option>
             </select>
 
             <label for="email">Email:</label>
@@ -34,7 +35,7 @@
             <label for="broj_telefona">Broj Telefona:</label>
             <input type="text" id="broj_telefona" name="broj_telefona" required>
 
-            <label for="datum_zaposljavanja">Datum Zapošljavanja:</label>
+            <label for="datum_zaposljavanja">Datum Zaposljavanja:</label>
             <input type="date" id="datum_zaposljavanja" name="datum_zaposljavanja" required>
 
             <label for="pozicija">Pozicija:</label>
@@ -44,23 +45,21 @@
             <input type="text" id="status_zaposlenika" name="status_zaposlenika" required>
 
             <label for="satnica">Satnica:</label>
-            <input type="number" id="satnica" name="satnica" step="0.01" required>
+            <input type="number" step="0.01" id="satnica" name="satnica" required>
 
-            <label for="id_odjel">ID Odjela:</label>
+            <label for="id_odjel">ID Odjel:</label>
             <input type="number" id="id_odjel" name="id_odjel" required>
 
             <button type="submit">Dodaj Zaposlenika</button>
         </form>
+        <p id="status-message" style="color: red; margin-top: 1rem;"></p>
     </main>
 
     <script>
-        const form = document.getElementById('dodaj-zaposlenika-form');
-
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData(form);
-
-            const data = Object.fromEntries(formData.entries());
+        async function submitForm(event) {
+            event.preventDefault();
+            const formData = new FormData(document.getElementById('add-zaposlenik-form'));
+            const data = Object.fromEntries(formData);
 
             try {
                 const response = await fetch('/dodaj_zaposlenika', {
@@ -71,18 +70,16 @@
                     body: JSON.stringify(data),
                 });
 
-                if (response.ok) {
-                    alert('Zaposlenik uspješno dodan!');
-                    form.reset();
-                } else {
-                    const errorData = await response.json();
-                    alert(`Pogreška: ${errorData.error}`);
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status}`);
                 }
+
+                const result = await response.json();
+                document.getElementById('status-message').innerText = result.message || 'Success!';
             } catch (error) {
-                console.error('Error submitting form:', error);
-                alert('Došlo je do pogreške prilikom slanja zahtjeva.');
+                document.getElementById('status-message').innerText = error.message;
             }
-        });
+        }
     </script>
 </body>
 </html>

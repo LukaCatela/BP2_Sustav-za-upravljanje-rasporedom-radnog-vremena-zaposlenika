@@ -47,10 +47,10 @@ def index():
 
     return render_template('index.html', is_admin=False, schedule=schedule, message=None)
 
-@app.route('/dodaj_zaposlenika', methods=['GET', 'POST'])
-def dodaj_zaposlenika():
+@app.route('/procedure', methods=['GET', 'POST'])
+def procedure():
     if request.method == 'POST':
-        data = request.json  # Expecting JSON input from the client
+        data = request.json
         try:
             with db.engine.connect() as conn:
                 conn.execute(
@@ -69,12 +69,11 @@ def dodaj_zaposlenika():
                         'p_id_odjel': data['id_odjel']
                     }
                 )
-            return jsonify({"message": "Employee added successfully!"}), 200
+            return jsonify({"message": "Procedure executed successfully!"}), 200
         except Exception as e:
             return jsonify({"error": str(e)}), 500
-    else:
-        # Render the HTML form when accessed via GET
-        return render_template('dodaj_zaposlenika.html')
+
+    return render_template('dodaj_zaposlenika.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -107,7 +106,6 @@ def get_schedule(user_id):
     schedule = []
     try:
         with db.engine.connect() as conn:
-            
             query = text("""
                 SELECT 
                     r.datum AS datum, 
@@ -119,18 +117,37 @@ def get_schedule(user_id):
                 LEFT JOIN napomene n ON r.id_zaposlenik = n.id_zaposlenik AND r.datum = n.datum
                 WHERE r.id_zaposlenik = :user_id
             """)
-            print(f"User ID: {user_id}")
-            print(f"Fetched schedule: {schedule}")
-
-            print(f"Executing query: {query}")
-            print(f"Parameters: user_id={user_id}")
             result = conn.execute(query, {'user_id': user_id})
             schedule = [dict(row._mapping) for row in result]
     except Exception as e:
-        print(f"Error fetching schedule: {e}")
         return jsonify({"error": f"Error fetching schedule: {e}"}), 500
 
     return jsonify(schedule)
+
+@app.route('/test-procedure')
+def test_procedure():
+    # Call the procedure with some test data and return the result
+    try:
+        with db.engine.connect() as conn:
+            conn.execute(
+                text("CALL dodaj_zaposlenika(:p_ime, :p_prezime, :p_oib, :p_spol, :p_email, :p_broj_telefona, :p_datum_zaposljavanja, :p_pozicija, :p_status_zaposlenika, :p_satnica, :p_id_odjel)"),
+                {
+                    'p_ime': 'Test',
+                    'p_prezime': 'User',
+                    'p_oib': '12345678901',
+                    'p_spol': 'M',
+                    'p_email': 'testuser@example.com',
+                    'p_broj_telefona': '0912345678',
+                    'p_datum_zaposljavanja': '2025-01-20',
+                    'p_pozicija': 'Test Position',
+                    'p_status_zaposlenika': 'aktivan',
+                    'p_satnica': 50.00,
+                    'p_id_odjel': 1
+                }
+            )
+        return jsonify({"message": "Test procedure executed successfully!"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == '__main__':

@@ -3,62 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pregled Podataka</title>
+    <title>Pregled Rasporeda</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <header>
-        <h1>Pregled Podataka</h1>
+        <h1>Pregled Rasporeda</h1>
+        {% if is_admin %}
+        <div style="position: absolute; top: 10px; left: 10px;">
+            <button onclick="window.location.href='/logout'">Logout</button>
+        </div>
+        {% else %}
+        <div style="position: absolute; top: 10px; right: 10px;">
+            <button onclick="window.location.href='/login'">Admin</button>
+        </div>
+        {% endif %}
     </header>
 
     <main>
         <div>
-            <button onclick="window.location.href='/zaposlenik'">Zaposlenici</button>
-            <button onclick="window.location.href='/bolovanje'">Bolovanje</button>
-            <button onclick="window.location.href='/dopust'">Dopust</button>
-            <button onclick="window.location.href='/evidencija_rada'">Evidencija Rada</button>
-            <button onclick="window.location.href='/godisnji_odmori'">Godišnji Odmori</button>
-            <button onclick="window.location.href='/napomene'">Napomene</button>
-            <button onclick="window.location.href='/odjel'">Odjel</button>
-            <button onclick="window.location.href='/place'">Plaće</button>
-            <button onclick="window.location.href='/preferencije_smjena'">Preferencije Smjena</button>
-            <button onclick="window.location.href='/projekti'">Projekti</button>
-            <button onclick="window.location.href='/raspored_rada'">Raspored Rada</button>
-            <button onclick="window.location.href='/sluzbena_putovanja'">Službena Putovanja</button>
-            <button onclick="window.location.href='/smjene'">Smjene</button>
-            <button onclick="window.location.href='/vrsta_smjene'">Vrsta Smjene</button>
-            <button onclick="window.location.href='/zadaci'">Zadaci</button>
-            <button onclick="window.location.href='/zahtjev_prekovremeni'">Zahtjev Prekovremeni</button>
+            {% if is_admin %}
+            <label for="user-select">Odaberite korisnika:</label>
+            <select id="user-select" onchange="fetchSchedule(this.value)">
+                <option value="">-- Odaberite korisnika --</option>
+                {% for user in users %}
+                <option value="{{ user.id }}">{{ user.ime }} {{ user.prezime }}</option>
+                {% endfor %}
+            </select>
+            {% endif %}
         </div>
 
-        {% if message %}
-        <p id="status-message" style="text-align: center; margin-top: 1rem; color: red;">{{ message }}</p>
-        {% endif %}
+        <p id="status-message" style="text-align: center; margin-top: 1rem; color: red;">
+            {{ message if message else '' }}
+        </p>
 
-        {% if table_data %}
         <table>
-            <thead>
+            <thead id="table-header">
                 <tr>
-                    {% for key in table_data[0].keys() %}
-                    <th>{{ key }}</th>
-                    {% endfor %}
+                    <th>Datum</th>
+                    <th>Raspored</th>
+                    <th>Napomena</th>
                 </tr>
             </thead>
-            <tbody>
-                {% for row in table_data %}
-                <tr>
-                    {% for value in row.values() %}
-                    <td>{{ value }}</td>
+            <tbody id="table-body">
+                {% if schedule %}
+                    {% for item in schedule %}
+                    <tr>
+                        <td>{{ item.datum }}</td>
+                        <td>{{ item.raspored }}</td>
+                        <td>{{ item.napomena }}</td>
+                    </tr>
                     {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="3">Nema podataka za prikaz.</td>
                 </tr>
-                {% endfor %}
+                {% endif %}
             </tbody>
         </table>
-        {% else %}
-        {% if not message %}
-        <p style="text-align: center; margin-top: 1rem;">Nema podataka za prikaz.</p>
-        {% endif %}
-        {% endif %}
     </main>
+
+    <script>
+        async function fetchSchedule(userId) {
+            const statusMessage = document.getElementById('status-message');
+            const tableBody = document.getElementById('table-body');
+
+            if (!userId) {
+                statusMessage.innerText = 'Molimo odaberite korisnika.';
+                tableBody.innerHTML = '<tr><td colspan="3">Nema podataka za prikaz.</td></tr>';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/schedule/${userId}`);
+                const data = await response.json();
+                console.log("User ID:", userId);
+                console.log("Fetched data:", data);
+
+
+                statusMessage.innerText = '';
+                tableBody.innerHTML = '';
+
+                if (data.length > 0) {
+                    data.forEach(row => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `<td>${row.datum}</td><td>${row.raspored}</td><td>${row.napomena}</td>`;
+                        tableBody.appendChild(tr);
+                    });
+                } else {
+                    tableBody.innerHTML = '<tr><td colspan="3">Nema podataka za prikaz.</td></tr>';
+                }
+            } catch (error) {
+                console.error('Error fetching schedule:', error);
+                statusMessage.innerText = 'Pogreška pri dohvaćanju podataka.';
+            }
+        }
+
+        // Fetch current user's schedule on page load (if not admin)
+        {% if not is_admin and user_id %}
+        fetchSchedule({{ user_id }});
+        {% endif %}
+    </script>
 </body>
 </html>

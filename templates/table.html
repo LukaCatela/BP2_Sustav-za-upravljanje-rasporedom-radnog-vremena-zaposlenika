@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Zaposlenik</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Podaci o Zaposlenicima</h1>
+    </header>
+    <main>
+        <table>
+            <thead>
+                <tr>
+                    {% if table_data and table_data|length > 0 %}
+                        {% for header in table_data[0].keys() %}
+                            <th>{{ header }}</th>
+                        {% endfor %}
+                    {% else %}
+                        <th>Nema podataka</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% if table_data and table_data|length > 0 %}
+                    {% for row in table_data %}
+                        <tr>
+                            {% for value in row.values() %}
+                                <td>{{ value }}</td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="10">{{ message if message else "Nema podataka za prikaz." }}</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </main>
+</body>
+</html>

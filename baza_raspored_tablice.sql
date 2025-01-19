@@ -2,7 +2,6 @@ DROP DATABASE IF EXISTS bp_2_projekt;
 CREATE DATABASE bp_2_projekt;
 USE bp_2_projekt;
 
--- Tablica odjela
 CREATE TABLE odjel(
     id INT PRIMARY KEY AUTO_INCREMENT,
     naziv VARCHAR(50),
@@ -28,21 +27,26 @@ CREATE TABLE zaposlenik(
     FOREIGN KEY (id_odjel) REFERENCES odjel(id)
     
 );
+-- Tablica vrsta smjene
 
--- Tablica smjena
-CREATE TABLE smjene(
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    vrsta_smjene ENUM('jutarnja', 'popodnevna', 'nocna') NOT NULL,
-    pocetak_smjene DATETIME NOT NULL,
-    kraj_smjene DATETIME NOT NULL,
-    min_broj_zaposlenika TINYINT UNSIGNED NOT NULL, 
-    id_odjel INTEGER NOT NULL, 
-    CONSTRAINT ck_datum_smjena CHECK(pocetak_smjene < kraj_smjene),
-	FOREIGN KEY (id_odjel) REFERENCES odjel(id)
-
+CREATE TABLE vrsta_smjene (
+    id INT PRIMARY KEY,
+    naziv VARCHAR(50) NOT NULL UNIQUE,
+    pocetak_smjene TIME NOT NULL,
+    kraj_smjene TIME NOT NULL
 );
 
--- Tablica bolovanja
+-- Tablica smjena
+CREATE TABLE smjene (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    id_vrsta_smjene INT NOT NULL,
+    min_broj_zaposlenika TINYINT UNSIGNED NOT NULL,
+    id_odjel INT NOT NULL,
+    FOREIGN KEY (id_odjel) REFERENCES odjel(id),
+    FOREIGN KEY (id_vrsta_smjene) REFERENCES vrsta_smjene(id)
+);
+
+-- Tablica Bolovanja
 CREATE TABLE bolovanje(
     id INT PRIMARY KEY AUTO_INCREMENT,
     id_zaposlenik INT NOT NULL,
@@ -60,8 +64,8 @@ CREATE TABLE raspored_rada(
     id_zaposlenik INT NOT NULL,
     id_smjena INT NOT NULL,
     datum DATE NOT NULL,
-    FOREIGN KEY (id_zaposlenik) REFERENCES zaposlenik(id),
-    FOREIGN KEY (id_smjena) REFERENCES smjene(id),
+    FOREIGN KEY (id_zaposlenik) REFERENCES zaposlenik(id) ON DELETE CASCADE,
+    FOREIGN KEY (id_smjena) REFERENCES smjene(id) ON DELETE CASCADE,
     UNIQUE(id_zaposlenik, datum, id_smjena)
     -- dodat check za 1 smjena 1 datum -- UNIQUE(id_zaposlenik, datum) ili UNIQUE(id_zaposlenik, datum, id_smjena)
     -- implementirati (okidaci/procedure) da zaposlenik ne smije raditi jednu za drugom smjenom, npr. ne smije raditi "noćnu" jedan dan i drugi dan "jutarnju" da ne da otkaz zaposlenik ;)
@@ -74,7 +78,7 @@ CREATE TABLE evidencija_rada(
     datum DATE NOT NULL,
     vrijeme_dolaska TIME NOT NULL,
     vrijeme_odlaska TIME NOT NULL,
-    FOREIGN KEY (id_zaposlenik) REFERENCES zaposlenik(id),
+    FOREIGN KEY (id_zaposlenik) REFERENCES zaposlenik(id) ON DELETE CASCADE,
     CONSTRAINT ck_vrijeme CHECK(vrijeme_dolaska < vrijeme_odlaska)
 );
 
@@ -86,7 +90,7 @@ CREATE TABLE place(
     radni_sati INT NOT NULL CHECK(radni_sati >= 0),
     prekovremeni_sati INT NOT NULL CHECK(prekovremeni_sati >= 0),
     bolovanje_dani INT NOT NULL DEFAULT 0,
-    ukupna_placa DECIMAL(10,2) NOT NULL CHECK(ukupna_placa >= 0),
+    ukupna_placa DECIMAL(10,2) NOT NULL DEFAULT 0 CHECK(ukupna_placa >= 0),
     FOREIGN KEY (id_zaposlenik) REFERENCES zaposlenik(id) ON DELETE CASCADE
 );
 
@@ -99,9 +103,9 @@ CREATE TABLE godisnji_odmori (
     datum_podnosenja DATE, 
     godina INT NOT NULL, 
     broj_dana INT NOT NULL, 
-    FOREIGN KEY (id_zaposlenik) REFERENCES zaposlenik(id),
+    FOREIGN KEY (id_zaposlenik) REFERENCES zaposlenik(id) ON DELETE CASCADE,
     CONSTRAINT ck_datum_godisnji CHECK(pocetni_datum <= zavrsni_datum),
-    CONSTRAINT ck_godina_godisnji CHECK(YEAR(pocetni_datum) = godina)
+    CONSTRAINT ck_godina CHECK(YEAR(pocetni_datum) = godina)
 );
 
 
@@ -113,17 +117,18 @@ CREATE TABLE zahtjev_prekovremeni(
     sati INT NOT NULL,
     razlog VARCHAR(1000),
     status_pre VARCHAR(20), 
-    FOREIGN KEY (id_zaposlenik) REFERENCES zaposlenik(id)
+    FOREIGN KEY (id_zaposlenik) REFERENCES zaposlenik(id) ON DELETE CASCADE
 );
 
 -- Tablica preferencija zaposlenika za smjene
 CREATE TABLE preferencije_smjena(
     id INT PRIMARY KEY AUTO_INCREMENT,
     id_zaposlenik INT NOT NULL,
-    vrsta_smjene ENUM('jutarnja', 'popodnevna', 'nocna') NOT NULL,
+	id_vrsta_smjene INT NOT NULL,
     datum DATETIME NOT NULL,
     prioritet TINYINT UNSIGNED NOT NULL,
-    FOREIGN KEY (id_zaposlenik) REFERENCES zaposlenik(id),
+    FOREIGN KEY (id_zaposlenik) REFERENCES zaposlenik(id) ON DELETE CASCADE,
+	FOREIGN KEY (id_vrsta_smjene) REFERENCES vrsta_smjene(id),
     CONSTRAINT ck_prioritet CHECK(prioritet > 0 AND prioritet <= 10)
 );
 
@@ -136,11 +141,9 @@ CREATE TABLE sluzbena_putovanja(
     svrha_putovanja VARCHAR(100) NOT NULL,
     odrediste VARCHAR(100) NOT NULL,
     troskovi DECIMAL(10,2) NOT NULL CHECK(troskovi >= 0),
-    FOREIGN KEY (id_zaposlenik) REFERENCES zaposlenik(id),
+    FOREIGN KEY (id_zaposlenik) REFERENCES zaposlenik(id) ON DELETE CASCADE,
     CONSTRAINT ck_putovanje CHECK(pocetni_datum < zavrsni_datum)
 );
-
--- implementirat proceduru koja će omogućiti da dva zaposlenika zamjene smjene
 
 CREATE TABLE dopust (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -151,7 +154,7 @@ CREATE TABLE dopust (
     status ENUM('odobren', 'odbijen', 'na čekanju') DEFAULT 'na čekanju',
     razlog VARCHAR(500), 
     datum_podnosenja DATE NOT NULL, 
-    FOREIGN KEY (id_zaposlenik) REFERENCES zaposlenik(id),
+    FOREIGN KEY (id_zaposlenik) REFERENCES zaposlenik(id) ON DELETE CASCADE,
     CONSTRAINT ck_dopust CHECK(pocetni_datum <= zavrsni_datum)
 );
 
@@ -164,8 +167,9 @@ CREATE TABLE projekti (
     datum_zavrsetka DATE,
     status ENUM('aktivni', 'završeni', 'odgođeni') DEFAULT 'aktivni',
     odgovorna_osoba INT, 
-    FOREIGN KEY (odgovorna_osoba) REFERENCES zaposlenik(id),
+    FOREIGN KEY (odgovorna_osoba) REFERENCES zaposlenik(id) ON DELETE CASCADE,
     CONSTRAINT ck_datum_projekt CHECK(datum_pocetka <= datum_zavrsetka)
+    -- trigger datum zavrsetka not null, status zavrsen
 );
 
 CREATE TABLE zadaci (
@@ -179,8 +183,8 @@ CREATE TABLE zadaci (
     status ENUM('u tijeku', 'završeni', 'odgođeni') DEFAULT 'u tijeku',
     prioritet ENUM('nizak', 'srednji', 'visok') DEFAULT 'srednji', 
     FOREIGN KEY (id_projekt) REFERENCES projekti(id),
-    FOREIGN KEY (id_zaposlenik) REFERENCES zaposlenik(id),
-    CONSTRAINT ck_datum_zadatak CHECK(datum_pocetka <= IFNULL(datum_zavrsetka, datum_pocetka)) 
+    FOREIGN KEY (id_zaposlenik) REFERENCES zaposlenik(id) ON DELETE CASCADE,
+    CONSTRAINT ck_datum_zadaci CHECK(datum_pocetka <= IFNULL(datum_zavrsetka, datum_pocetka)) 
 );
 
 CREATE TABLE napomene (
@@ -189,5 +193,32 @@ CREATE TABLE napomene (
     datum DATETIME NOT NULL,
     napomena TEXT NOT NULL,
     tip ENUM('pozitivna', 'negativna') DEFAULT 'pozitivna',
-    FOREIGN KEY (id_zaposlenik) REFERENCES zaposlenik(id)
+    FOREIGN KEY (id_zaposlenik) REFERENCES zaposlenik(id) ON DELETE CASCADE
 );
+/*----------------------------------------------------------------------------------*/
+-- Okidaci
+DELIMITER //
+CREATE TRIGGER azuriraj_status_prekovremeni
+AFTER UPDATE ON zahtjev_prekovremeni
+FOR EACH ROW
+BEGIN
+    IF NEW.status_pre = 'odobreno' AND OLD.status_pre != 'odobreno' THEN
+        UPDATE zahtjev_prekovremeni
+        SET sati = NEW.sati
+        WHERE id = NEW.id;
+    END IF;
+END //
+DELIMITER ;
+
+-- Automatsko postavljanje statusa projekta na "završeni"
+DELIMITER //
+CREATE TRIGGER trg_projekt_status_zavrsen
+BEFORE UPDATE ON projekti
+FOR EACH ROW
+BEGIN
+	IF NEW.datum_zavrsetka IS NOT NULL AND NEW.status != 'završeni' THEN
+		SET NEW.status = 'završeni';
+	END IF;
+END //
+
+DELIMITER ;
